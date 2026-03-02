@@ -1,0 +1,14 @@
+{
+    "query_list": [
+        {"url": "https://raw.githubusercontent.com/free-nodes/v2rayfree/main/v202603022"},
+        {"url": "https://ghfast.top/https://raw.githubusercontent.com/free18/v2ray/refs/heads/main/v.txt"},
+        {"url": "https://nodefree.me", "match1": "article a", "match2": ".section p"},
+        {"url": "https://www.freev2raynode.com", "match1": ".col-md-3 a", "match2": ".post-content-content p"},
+        {"url": "https://www.freeclashnode.com", "match1": ".col-md-3 a", "match2": ".post-content-content p"},
+        {"url": "https://clashfreenode.com", "match1": ".list-body a", "match2": ".subCopy"},
+        {"url": "https://freenodes.net", "match1": ".col-md-3 a", "match2": ".post-content-content p"},
+        {"url": "https://oneclash.cc", "match1": ".post_def_left", "match2": ".wznrys p"},
+        {"url": "https://shadowsocksr.org", "match1": ".col-md-3 a", "match2": ".post-content-content p"},
+        {"url": "https://clashgithub.com/", "match1": "#list a", "match2": ".entry-content.cf p"}
+    ]
+}

@@ -1,0 +1,122 @@
+# Free Proxy Node Subscription Aggregator
+
+English | [简体中文](README_CN.md)
+
+A Python tool that automatically fetches, merges, and deduplicates proxy nodes from multiple free sources, generating a unified subscription link.
+
+## Features
+
+- **Multi-source Aggregation**: Fetch nodes from multiple free subscription sources simultaneously
+- **Auto Deduplication**: Automatically remove duplicate nodes during merging
+- **Multi-protocol Support**: Support vmess, ss, ssr, trojan, vless and other mainstream protocols
+- **Base64 Encoding**: Output standard Base64 encoded subscription content, ready to import into clients
+- **Local Server**: Automatically start HTTP server providing local subscription links
+
+## Project Structure
+
+```
+.
+├── main.py              # Main program
+├── config.json          # Subscription source configuration
+├── requirements.txt     # Python dependencies
+├── run.bat              # Windows startup script
+├── run.sh               # Linux/Mac startup script
+└── free_nodes_merged.txt # Merged subscription file (generated after running)
+```
+
+## Installation
+
+### Requirements
+
+- Python 3.6+
+
+### Install Dependencies
+
+**Windows:**
+```bash
+pip install -r requirements.txt
+```
+
+**Linux/Mac:**
+```bash
+pip3 install -r requirements.txt
+```
+
+## Usage
+
+### Quick Start
+
+**Windows:**
+Double-click `run.bat` or execute:
+```bash
+run.bat
+```
+
+**Linux/Mac:**
+```bash
+bash run.sh
+```
+
+### Manual Run
+
+```bash
+python main.py
+```
+
+The program will:
+1. Fetch nodes from all sources configured in `config.json`
+2. Merge and deduplicate all nodes
+3. Generate `free_nodes_merged.txt` file
+4. Start a local HTTP server (port 8000)
+
+### Import Subscription
+
+After running, use the following addresses to import into your client:
+
+- Local: `http://127.0.0.1:8000/free_nodes_merged.txt`
+- LAN: `http://<your_IP>:8000/free_nodes_merged.txt`
+
+## Configuration
+
+Edit `config.json` to add or modify subscription sources:
+
+### Direct Subscription URL
+
+For URLs that return node content directly:
+
+```json
+{
+    "url": "https://example.com/subscribe"
+}
+```
+
+### Two-step Fetch Mode
+
+For websites that require visiting a page first before extracting nodes:
+
+```json
+{
+    "url": "https://example.com",
+    "match1": "article a",
+    "match2": ".content p"
+}
+```
+
+- `match1`: Link selector in the first page
+- `match2`: Node content selector in the second page
+
+## Dependencies
+
+- `requests` - HTTP requests
+- `beautifulsoup4` - HTML parsing
+
+## Disclaimer
+
+1. This tool is for learning and research purposes only
+2. Free nodes are not guaranteed to be stable, recommended for testing only
+3. Please comply with local laws and regulations, use network resources legally
+4. Subscription sources are from public networks, please verify security yourself
+
+## License
+
+MIT
