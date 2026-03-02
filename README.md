@@ -2,7 +2,10 @@
 
 English | [简体中文](README_CN.md)
 
+
 A Python tool that automatically fetches, merges, and deduplicates proxy nodes from multiple free sources, generating a unified subscription link.
+
+> This project works best with [Karing](https://github.com/KaringX/karing)! Karing is a cross-platform proxy client that supports multiple protocols with a clean and intuitive interface.
 
 ## Features
 
@@ -78,21 +81,37 @@ After running, use the following addresses to import into your client:
 
 ## Configuration
 
-Edit `config.json` to add or modify subscription sources:
+Edit `config.json` to add or modify subscription sources.
 
-### Direct Subscription URL
-
-For URLs that return node content directly:
+### Config File Structure
 
 ```json
 {
-    "url": "https://example.com/subscribe"
+    "query_list": [
+        {
+            "url": "https://example.com/subscribe"
+        }
+    ]
 }
 ```
 
-### Two-step Fetch Mode
+### Mode 1: Direct Subscription URL
 
-For websites that require visiting a page first before extracting nodes:
+For URLs that return node content directly (Base64 encoded or plain text).
+
+#### Example
+
+```json
+{
+    "url": "https://raw.githubusercontent.com/free-nodes/v2rayfree/main/v202603022"
+}
+```
+
+### Mode 2: Two-step Fetch Mode
+
+For websites that require visiting a page first, then extracting the subscription link.
+
+#### Example
 
 ```json
 {
@@ -102,8 +121,54 @@ For websites that require visiting a page first before extracting nodes:
 }
 ```
 
-- `match1`: Link selector in the first page
-- `match2`: Node content selector in the second page
+#### Parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `url` | The target website URL |
+| `match1` | CSS selector to find the subscription link in the first page |
+| `match2` | CSS selector to extract node content from the second page |
+
+### Complete Example
+
+```json
+{
+    "query_list": [
+        {
+            "url": "https://raw.githubusercontent.com/free-nodes/v2rayfree/main/v202603022"
+        },
+        {
+            "url": "https://nodefree.me",
+            "match1": "article a",
+            "match2": ".section p"
+        },
+        {
+            "url": "https://www.freev2raynode.com",
+            "match1": ".col-md-3 a",
+            "match2": ".post-content-content p"
+        }
+    ]
+}
+```
+
+## Contributing
+
+Welcome to contribute node URLs! 🎉
+
+This project relies on community contributions to keep growing the available nodes. If you know of any free proxy node sources, please contribute by:
+
+1. **Fork** this repository
+2. **Add** your node source to `config.json`
+3. **Submit** a Pull Request
+
+Your contribution helps make this tool more useful for everyone. Together we can build a better node pool!
+
+### Contribution Guidelines
+
+- Only add **legitimate** free node sources
+- Test the URL before submitting (ensure it returns valid proxy links)
+- Provide the source website URL clearly
+- Avoid duplicate sources that already exist in the config
 
 ## Dependencies
 

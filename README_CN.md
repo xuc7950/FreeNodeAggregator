@@ -2,7 +2,10 @@
 
 [English](README.md) | 简体中文
 
+
 一个自动从多个免费节点源获取、合并并去重代理节点的 Python 工具，支持生成统一的订阅链接。
+
+> 本项目配合 [Karing](https://github.com/KaringX/karing) 使用更佳！Karing 是一款跨平台的代理客户端，支持多种协议，界面简洁易用。
 
 ## 功能特点
 
@@ -78,21 +81,37 @@ python main.py
 
 ## 配置说明
 
-编辑 `config.json` 添加或修改订阅源：
+编辑 `config.json` 添加或修改订阅源。
 
-### 直接订阅链接
-
-适用于直接返回节点内容的 URL：
+### 配置文件结构
 
 ```json
 {
-    "url": "https://example.com/subscribe"
+    "query_list": [
+        {
+            "url": "https://example.com/subscribe"
+        }
+    ]
 }
 ```
 
-### 两步获取模式
+### 模式一：直接订阅链接
 
-适用于需要先访问页面再提取节点的网站：
+适用于直接返回节点内容的 URL（Base64 编码或明文）。
+
+#### 配置示例
+
+```json
+{
+    "url": "https://raw.githubusercontent.com/free-nodes/v2rayfree/main/v202603022"
+}
+```
+
+### 模式二：两步获取模式
+
+适用于需要先访问页面再提取订阅链接的网站。
+
+#### 配置示例
 
 ```json
 {
@@ -102,8 +121,54 @@ python main.py
 }
 ```
 
-- `match1`：第一步页面中的链接选择器
-- `match2`：第二步页面中节点内容的选择器
+#### 参数说明
+
+| 参数 | 说明 |
+|------|------|
+| `url` | 目标网站 URL |
+| `match1` | 在第一个页面中查找订阅链接的 CSS 选择器 |
+| `match2` | 在第二个页面中提取节点内容的 CSS 选择器 |
+
+### 完整配置示例
+
+```json
+{
+    "query_list": [
+        {
+            "url": "https://raw.githubusercontent.com/free-nodes/v2rayfree/main/v202603022"
+        },
+        {
+            "url": "https://nodefree.me",
+            "match1": "article a",
+            "match2": ".section p"
+        },
+        {
+            "url": "https://www.freev2raynode.com",
+            "match1": ".col-md-3 a",
+            "match2": ".post-content-content p"
+        }
+    ]
+}
+```
+
+## 欢迎贡献
+
+欢迎大家贡献节点 URL！🎉
+
+本项目的节点库依赖于社区的贡献才能不断壮大。如果你知道任何免费的代理节点来源，欢迎通过以下方式贡献：
+
+1. **Fork** 本仓库
+2. **添加** 你的节点源到 `config.json`
+3. **提交** Pull Request
+
+你的贡献会让这个工具对每个人都有帮助。让我们一起构建更好的节点池！
+
+### 贡献指南
+
+- 只添加**合法**的免费节点来源
+- 提交前测试 URL（确保返回有效的代理链接）
+- 清晰提供来源网站 URL
+- 避免添加配置中已存在的重复来源
 
 ## 依赖
 
