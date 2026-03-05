@@ -4,11 +4,14 @@ from bs4 import BeautifulSoup
 import base64
 import re
 from pprint import pprint
-import os
 import socket
 import json
+import subprocess
+from datetime import datetime
+from time import time, sleep
+from sys import platform
 
-query_list = json.load(open("config.json", "r", encoding="utf-8"))["query_list"]
+config = json.load(open("config.json", "r", encoding="utf-8"))
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
@@ -160,10 +163,10 @@ def quick_download_merge(all_urls, output='merged.txt'):
         print(f"💾 文件: {output}")
         
         # 显示订阅内容
-        print(f"\n📋 订阅内容（可复制导入）:")
-        print(encoded[:300] + "...\n")
-        print(f"订阅链接1：http://127.0.0.1:8000/free_nodes_merged.txt")
-        print(f"订阅链接2：http://{get_local_ip()}:8000/free_nodes_merged.txt")
+        # print(f"\n📋 订阅内容（可复制导入）:")
+        # print(encoded[:300] + "...\n")
+        print(f"订阅链接1：http://127.0.0.1:{config['port']}/free_nodes_merged.txt")
+        print(f"订阅链接2：http://{get_local_ip()}:{config['port']}/free_nodes_merged.txt")
         print()
         
         return output
@@ -171,21 +174,41 @@ def quick_download_merge(all_urls, output='merged.txt'):
         print("\n❌ 未获取到任何节点")
         return None
 
+start_time = time()
+update_time = config["update_time"]
+roung = 0
+proc = None
 
-all_nodes = []
-count = 0
-for query in query_list:
-    print(f"\n正在获取第{count+1}/{len(query_list)}个网址节点：{query['url']}")
-    if "match1" not in query or "match2" not in query:
-        all_nodes.append(get_nodes_directly(query["url"]))
-    else:
-        all_nodes.append(get_nodes_by_two_steps(query["url"], query["match1"], query["match2"]))
-    count += 1
-for node in all_nodes:
-    if (type(node) is list):
-        pprint(node)
-    else:
-        print("获取到节点内容，长度:", len(node), "字符")
+while True:
+    if proc == None or (datetime.now().hour == update_time[0] and datetime.now().minute == update_time[1]):
+        if proc != None:
+            proc.terminate()
+            round += 1
+            print("----------------------------------------------------------------------------------")
+            print(f"您的服务已稳定运行{(time()-start_time)/3600:.2f}小时，正在更新节点...")
+            print(f"当前更新轮次为：{round}")
+            print("注意：更新过程中可能会短暂无法访问订阅链接，请更新完成后刷新。建议更新时间设置为每天凌晨。")
+        else:
+            round = 1
+            print("当前开始时间为：", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            print("开始第一次获取节点...")
+        all_nodes = []
+        count = 0
+        query_list = config["query_list"]
+        for query in query_list:
+            print(f"\n正在获取第{count+1}/{len(query_list)}个网址节点：{query['url']}")
+            if "match1" not in query or "match2" not in query:
+                all_nodes.append(get_nodes_directly(query["url"]))
+            else:
+                all_nodes.append(get_nodes_by_two_steps(query["url"], query["match1"], query["match2"]))
+            count += 1
+        for node in all_nodes:
+            if (type(node) is list):
+                pprint(node)
+            else:
+                print("获取到节点内容，长度:", len(node), "字符")
 
-result = quick_download_merge(all_nodes, 'free_nodes_merged.txt')
-os.system("python -m http.server")
+        result = quick_download_merge(all_nodes, 'free_nodes_merged.txt')
+
+        proc = subprocess.Popen([["python3","python"][platform.startswith("win")], "-m", "http.server", str(config["port"])])
+    sleep(59)

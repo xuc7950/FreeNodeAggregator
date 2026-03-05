@@ -2,10 +2,9 @@
 
 [English](README.md) | 简体中文
 
+> 本项目配合 [Karing](https://github.com/KaringX/karing) 使用更佳！Karing 是一款跨平台的代理客户端，支持多种协议，界面简洁易用。
 
 一个自动从多个免费节点源获取、合并并去重代理节点的 Python 工具，支持生成统一的订阅链接。
-
-> 本项目配合 [Karing](https://github.com/KaringX/karing) 使用更佳！Karing 是一款跨平台的代理客户端，支持多种协议，界面简洁易用。
 
 ## 功能特点
 
@@ -14,6 +13,8 @@
 - **多协议支持**：支持 vmess、ss、ssr、trojan、vless 等主流协议
 - **Base64 编码**：输出标准 Base64 编码的订阅内容，可直接导入客户端
 - **本地服务器**：自动启动 HTTP 服务器，提供本地订阅链接
+- **定时更新**：支持每天定时自动刷新节点
+- **自定义端口**：HTTP 服务器端口可配置
 
 ## 项目结构
 
@@ -70,18 +71,21 @@ python main.py
 1. 从 `config.json` 中配置的所有源获取节点
 2. 合并并去重所有节点
 3. 生成 `free_nodes_merged.txt` 文件
-4. 启动本地 HTTP 服务器（端口 8000）
+4. 启动本地 HTTP 服务器
+5. 持续运行，在设定时间自动更新节点
 
 ### 导入订阅
 
 运行后，可使用以下地址导入客户端：
 
-- 本地：`http://127.0.0.1:8000/free_nodes_merged.txt`
-- 局域网：`http://<你的IP>:8000/free_nodes_merged.txt`
+- 本地：`http://127.0.0.1:<端口>/free_nodes_merged.txt`
+- 局域网：`http://<你的IP>:<端口>/free_nodes_merged.txt`
+
+> 注意：将 `<端口>` 替换为 `config.json` 中配置的端口（默认：2352）
 
 ## 配置说明
 
-编辑 `config.json` 添加或修改订阅源。
+编辑 `config.json` 配置订阅源和服务器设置。
 
 ### 配置文件结构
 
@@ -91,9 +95,19 @@ python main.py
         {
             "url": "https://example.com/subscribe"
         }
-    ]
+    ],
+    "update_time": [0, 0],
+    "port": 2352
 }
 ```
+
+### 全局参数
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `query_list` | 数组 | 节点来源列表 |
+| `update_time` | 数组 | 每日更新时间 `[小时, 分钟]`，如 `[0, 0]` 表示凌晨 |
+| `port` | 数字 | HTTP 服务器端口（默认：2352） |
 
 ### 模式一：直接订阅链接
 
@@ -147,7 +161,9 @@ python main.py
             "match1": ".col-md-3 a",
             "match2": ".post-content-content p"
         }
-    ]
+    ],
+    "update_time": [0, 0],
+    "port": 2352
 }
 ```
 

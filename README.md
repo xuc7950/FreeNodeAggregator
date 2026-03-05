@@ -2,10 +2,9 @@
 
 English | [简体中文](README_CN.md)
 
+> This project works best with [Karing](https://github.com/KaringX/karing)! Karing is a cross-platform proxy client that supports multiple protocols with a clean and intuitive interface.
 
 A Python tool that automatically fetches, merges, and deduplicates proxy nodes from multiple free sources, generating a unified subscription link.
-
-> This project works best with [Karing](https://github.com/KaringX/karing)! Karing is a cross-platform proxy client that supports multiple protocols with a clean and intuitive interface.
 
 ## Features
 
@@ -14,6 +13,8 @@ A Python tool that automatically fetches, merges, and deduplicates proxy nodes f
 - **Multi-protocol Support**: Support vmess, ss, ssr, trojan, vless and other mainstream protocols
 - **Base64 Encoding**: Output standard Base64 encoded subscription content, ready to import into clients
 - **Local Server**: Automatically start HTTP server providing local subscription links
+- **Scheduled Updates**: Automatically refresh nodes at a specified time daily
+- **Custom Port**: Configurable HTTP server port
 
 ## Project Structure
 
@@ -70,18 +71,21 @@ The program will:
 1. Fetch nodes from all sources configured in `config.json`
 2. Merge and deduplicate all nodes
 3. Generate `free_nodes_merged.txt` file
-4. Start a local HTTP server (port 8000)
+4. Start a local HTTP server
+5. Keep running and automatically update nodes at the scheduled time
 
 ### Import Subscription
 
 After running, use the following addresses to import into your client:
 
-- Local: `http://127.0.0.1:8000/free_nodes_merged.txt`
-- LAN: `http://<your_IP>:8000/free_nodes_merged.txt`
+- Local: `http://127.0.0.1:<port>/free_nodes_merged.txt`
+- LAN: `http://<your_IP>:<port>/free_nodes_merged.txt`
+
+> Note: Replace `<port>` with the port configured in `config.json` (default: 2352)
 
 ## Configuration
 
-Edit `config.json` to add or modify subscription sources.
+Edit `config.json` to configure subscription sources and server settings.
 
 ### Config File Structure
 
@@ -91,9 +95,19 @@ Edit `config.json` to add or modify subscription sources.
         {
             "url": "https://example.com/subscribe"
         }
-    ]
+    ],
+    "update_time": [0, 0],
+    "port": 2352
 }
 ```
+
+### Global Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `query_list` | Array | List of node sources |
+| `update_time` | Array | Daily update time `[hour, minute]`, e.g. `[0, 0]` for midnight |
+| `port` | Number | HTTP server port (default: 2352) |
 
 ### Mode 1: Direct Subscription URL
 
@@ -147,7 +161,9 @@ For websites that require visiting a page first, then extracting the subscriptio
             "match1": ".col-md-3 a",
             "match2": ".post-content-content p"
         }
-    ]
+    ],
+    "update_time": [0, 0],
+    "port": 2352
 }
 ```
 

@@ -10,5 +10,7 @@
         {"url": "https://oneclash.cc", "match1": ".post_def_left", "match2": ".wznrys p"},
         {"url": "https://shadowsocksr.org", "match1": ".col-md-3 a", "match2": ".post-content-content p"},
         {"url": "https://clashgithub.com/", "match1": "#list a", "match2": ".entry-content.cf p"}
-    ]
+    ],
+    "update_time": [0, 0],
+    "port": 2352
 }
