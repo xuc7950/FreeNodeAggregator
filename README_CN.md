@@ -96,7 +96,7 @@ python main.py
             "url": "https://example.com/subscribe"
         }
     ],
-    "update_time": [0, 0],
+    "update_time": "00:00",
     "port": 2352
 }
 ```
@@ -106,7 +106,7 @@ python main.py
 | 参数 | 类型 | 说明 |
 |------|------|------|
 | `query_list` | 数组 | 节点来源列表 |
-| `update_time` | 数组 | 每日更新时间 `[小时, 分钟]`，如 `[0, 0]` 表示凌晨 |
+| `update_time` | 字符串 | 每日更新时间，格式为 `HH:MM`，如 `"00:00"` 表示凌晨 |
 | `port` | 数字 | HTTP 服务器端口（默认：2352） |
 
 ### 模式一：直接订阅链接
@@ -162,7 +162,7 @@ python main.py
             "match2": ".post-content-content p"
         }
     ],
-    "update_time": [0, 0],
+    "update_time": "00:00",
     "port": 2352
 }
 ```

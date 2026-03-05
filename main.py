@@ -177,6 +177,7 @@ def quick_download_merge(all_urls, output='merged.txt'):
 start_time = time()
 update_time = config["update_time"]
 roung = 0
+update_time = [int(x) for x in update_time.split(":")]
 proc = None
 
 while True:

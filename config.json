@@ -11,6 +11,6 @@
         {"url": "https://shadowsocksr.org", "match1": ".col-md-3 a", "match2": ".post-content-content p"},
         {"url": "https://clashgithub.com/", "match1": "#list a", "match2": ".entry-content.cf p"}
     ],
-    "update_time": [0, 0],
+    "update_time": "03:00",
     "port": 2352
 }

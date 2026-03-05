@@ -96,7 +96,7 @@ Edit `config.json` to configure subscription sources and server settings.
             "url": "https://example.com/subscribe"
         }
     ],
-    "update_time": [0, 0],
+    "update_time": "00:00",
     "port": 2352
 }
 ```
@@ -106,7 +106,7 @@ Edit `config.json` to configure subscription sources and server settings.
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `query_list` | Array | List of node sources |
-| `update_time` | Array | Daily update time `[hour, minute]`, e.g. `[0, 0]` for midnight |
+| `update_time` | String | Daily update time in `HH:MM` format, e.g. `"00:00"` for midnight |
 | `port` | Number | HTTP server port (default: 2352) |
 
 ### Mode 1: Direct Subscription URL
@@ -162,7 +162,7 @@ For websites that require visiting a page first, then extracting the subscriptio
             "match2": ".post-content-content p"
         }
     ],
-    "update_time": [0, 0],
+    "update_time": "00:00",
     "port": 2352
 }
 ```
