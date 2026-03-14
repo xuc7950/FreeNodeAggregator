@@ -287,5 +287,60 @@ proxy_pattern = re.compile(
     r')$'
 )
 
+def print_contribution_box():
+    """打印贡献节点提示框"""
+    inner_width = 64
+
+    # 顶部装饰线
+    top_line = '═' * (inner_width + 4)
+    print(f"\n{YELLOW}{BOLD}{top_line}{RESET}")
+
+    # 顶部边框
+    print(f"{YELLOW}╔{'═' * inner_width}╗{RESET}")
+
+    # 标题行
+    title = "开源贡献邀请"
+    title_display = get_display_width(title)
+    title_padding = (inner_width - title_display - 6) // 2  # 减去icon和空格
+    print(f"{YELLOW}║{RESET}{' ' * title_padding}{GREEN}🌟{RESET} {CYAN}【{title}】{RESET}{GREEN}🌟{RESET}{' ' * title_padding}{YELLOW}║{RESET}")
+
+    # 分割线
+    print(f"{YELLOW}╠{'─' * inner_width}╣{RESET}")
+
+    # 内容行
+    content_lines = [
+        ("💡", "检测到您本地的测试节点可能有所更新", BLUE),
+        ("🤝", "欢迎为开源项目贡献您的节点资源！", MAGENTA),
+        ("", "", WHITE),  # 空行
+        ("📦", "项目地址: github.com/xuc7950/FreeNodeAggregator", CYAN),
+        ("📧", "联系邮箱: xuc7950@foxmail.com", GREEN),
+        ("", "", WHITE),  # 空行
+        ("🎓", "贡献教程: B站搜索「如何在github上贡献代码」", YELLOW),
+    ]
+
+    for icon, text, color in content_lines:
+        if icon == "":  # 空行
+            print(f"{YELLOW}║{' ' * inner_width}║{RESET}")
+        else:
+            line_text = f"{icon} {text}"
+            line_display = get_display_width(line_text)
+            padding = inner_width - line_display - 2
+            print(f"{YELLOW}║{RESET} {color}{line_text}{RESET}{' ' * padding}{YELLOW}║{RESET}")
+
+    # 底部分割线
+    print(f"{YELLOW}╠{'─' * inner_width}╣{RESET}")
+
+    # 感谢语
+    thanks = "感谢您的支持，让开源社区更美好！"
+    thanks_display = get_display_width(thanks)
+    thanks_padding = (inner_width - thanks_display - 4) // 2
+    print(f"{YELLOW}║{RESET}{' ' * thanks_padding}{GREEN}❤️ {thanks}{RESET}{' ' * thanks_padding}{YELLOW}║{RESET}")
+
+    # 底部边框
+    print(f"{YELLOW}╚{'═' * inner_width}╝{RESET}")
+
+    # 底部装饰线
+    print(f"{YELLOW}{BOLD}{top_line}{RESET}\n")
+
 def is_proxy_link(link):
     return bool(proxy_pattern.match(link.strip()))

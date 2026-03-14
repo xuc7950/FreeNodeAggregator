@@ -7,10 +7,22 @@ from time import time, sleep
 import os
 from utility import *
 from urllib.parse import quote, unquote
+import requests
 
 
 config = json.load(open("config.json", "r", encoding="utf-8"))
+
+online_query_list = []
+try:
+    res = requests.get("https://xuc7950.github.io/FreeNodeAggregator/config.json", timeout=10)
+    if res != "" and res.status_code == 200:
+        online_query_list = json.loads(res.text)["query_list"]
+    res.close()
+except: pass
+
 print(f"当前系统: {system_type}")
+print(f"在线节点（{len(online_query_list)}）：")
+pprint(online_query_list)
 
 start_time = time()
 update_time = config["update_time"]
@@ -104,6 +116,9 @@ while True:
         output_text += f" 测试模式: {config['test']['mode']}\n"
         output_text += f"测试线程数: {config['test']['threads']}"
         print_cool_box(output_text, "⚡")
+
+        if (len(online_query_list) != 0 and len(online_query_list) < len(config["query_list"])):
+            print_contribution_box()
 
         proc = subprocess.Popen([["python3","python"][system_type=="Windows"], "-m", "http.server", str(config["port"])])
     sleep(59)
