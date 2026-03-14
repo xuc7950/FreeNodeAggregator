@@ -77,6 +77,49 @@ bash run.sh
 python main.py
 ```
 
+### 使用自定义配置文件
+
+使用 `--config` 或 `-c` 参数指定自定义配置文件：
+
+```bash
+python main.py --config myconfig.json
+python main.py -c /path/to/config.json
+```
+
+### Docker 部署
+
+**1. 加载 Docker 镜像：**
+```bash
+sudo docker load -i FreeNodesAggregator@0.0.2-Docker.tar
+```
+
+**2. 使用自定义配置启动容器：**
+```bash
+sudo docker run --name free_node_aggregator \
+  -d \
+  -p 2352:2352 \
+  -v /path/to/your/config.json:/FreeNodeAggregator/config.json \
+  free_node_aggregator:0.0.2
+```
+
+**参数说明：**
+| 参数 | 说明 |
+|------|------|
+| `-d` | 后台运行（守护模式） |
+| `-p 2352:2352` | 将容器端口映射到主机端口 |
+| `-v` | 挂载自定义配置文件到容器 |
+
+**3. 查看日志：**
+```bash
+sudo docker logs -f free_node_aggregator
+```
+
+**4. 停止/重启容器：**
+```bash
+sudo docker stop free_node_aggregator
+sudo docker start free_node_aggregator
+```
+
 程序运行后会：
 1. 从 `config.json` 中配置的所有源获取节点
 2. 合并并去重所有节点

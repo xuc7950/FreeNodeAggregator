@@ -77,6 +77,49 @@ bash run.sh
 python main.py
 ```
 
+### Custom Config File
+
+Use `--config` or `-c` to specify a custom configuration file:
+
+```bash
+python main.py --config myconfig.json
+python main.py -c /path/to/config.json
+```
+
+### Docker Deployment
+
+**1. Load Docker Image:**
+```bash
+sudo docker load -i FreeNodesAggregator@0.0.2-Docker.tar
+```
+
+**2. Run Container with Custom Config:**
+```bash
+sudo docker run --name free_node_aggregator \
+  -d \
+  -p 2352:2352 \
+  -v /path/to/your/config.json:/FreeNodeAggregator/config.json \
+  free_node_aggregator:0.0.2
+```
+
+**Parameter Explanation:**
+| Parameter | Description |
+|-----------|-------------|
+| `-d` | Run in background (detached mode) |
+| `-p 2352:2352` | Map container port to host port |
+| `-v` | Mount custom config file to container |
+
+**3. View Logs:**
+```bash
+sudo docker logs -f free_node_aggregator
+```
+
+**4. Stop/Restart Container:**
+```bash
+sudo docker stop free_node_aggregator
+sudo docker start free_node_aggregator
+```
+
 The program will:
 1. Fetch nodes from all sources configured in `config.json`
 2. Merge and deduplicate all nodes
