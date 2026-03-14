@@ -15,17 +15,27 @@ A Python tool that automatically fetches, merges, and deduplicates proxy nodes f
 - **Local Server**: Automatically start HTTP server providing local subscription links
 - **Scheduled Updates**: Automatically refresh nodes at a specified time daily
 - **Custom Port**: Configurable HTTP server port
+- **Node Testing**: Built-in node availability testing with two modes:
+  - **Basic Mode**: Quick connectivity test
+  - **Full Mode**: Comprehensive speed test with latency, download/upload speed metrics
+- **Smart Filtering**: Filter out low-speed nodes based on configurable speed threshold
 
 ## Project Structure
 
 ```
 .
-├── main.py              # Main program
-├── config.json          # Subscription source configuration
-├── requirements.txt     # Python dependencies
-├── run.bat              # Windows startup script
-├── run.sh               # Linux/Mac startup script
-└── free_nodes_merged.txt # Merged subscription file (generated after running)
+├── main.py               # Main program
+├── utility.py            # Utility functions
+├── config.json           # Subscription source configuration
+├── requirements.txt      # Python dependencies
+├── run.bat               # Windows startup script
+├── run.sh                # Linux/Mac startup script
+├── tools/                # Node testing tools
+│   ├── Windows/          # Windows xray-knife
+│   └── Linux/            # Linux xray-knife
+├── free_nodes_raw.txt    # Raw merged nodes (generated after running)
+├── free_nodes_filtered.txt # Filtered nodes after testing (generated after running)
+└── free_nodes_filtered.csv # Test results CSV (generated in full mode)
 ```
 
 ## Installation
@@ -70,16 +80,17 @@ python main.py
 The program will:
 1. Fetch nodes from all sources configured in `config.json`
 2. Merge and deduplicate all nodes
-3. Generate `free_nodes_merged.txt` file
-4. Start a local HTTP server
-5. Keep running and automatically update nodes at the scheduled time
+3. Test node availability (if testing is enabled)
+4. Generate output files based on testing mode
+5. Start a local HTTP server
+6. Keep running and automatically update nodes at the scheduled time
 
 ### Import Subscription
 
 After running, use the following addresses to import into your client:
 
-- Local: `http://127.0.0.1:<port>/free_nodes_merged.txt`
-- LAN: `http://<your_IP>:<port>/free_nodes_merged.txt`
+- Local: `http://127.0.0.1:<port>/free_nodes_filtered.txt` (or `free_nodes_raw.txt` if testing is disabled)
+- LAN: `http://<your_IP>:<port>/free_nodes_filtered.txt`
 
 > Note: Replace `<port>` with the port configured in `config.json` (default: 2352)
 
@@ -97,7 +108,12 @@ Edit `config.json` to configure subscription sources and server settings.
         }
     ],
     "update_time": "00:00",
-    "port": 2352
+    "port": 2352,
+    "test": {
+        "mode": "full",
+        "threads": 50,
+        "speed_threshold": 0.2
+    }
 }
 ```
 
@@ -108,6 +124,15 @@ Edit `config.json` to configure subscription sources and server settings.
 | `query_list` | Array | List of node sources |
 | `update_time` | String | Daily update time in `HH:MM` format, e.g. `"00:00"` for midnight |
 | `port` | Number | HTTP server port (default: 2352) |
+| `test` | Object | Node testing configuration |
+
+### Test Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `mode` | String | Testing mode: `"none"` (skip testing), `"basic"` (connectivity test only), `"full"` (speed test with metrics) |
+| `threads` | Number | Number of concurrent test threads (default: 50) |
+| `speed_threshold` | Number | Minimum download speed threshold in Mb/s for filtering nodes (used in full mode) |
 
 ### Mode 1: Direct Subscription URL
 
@@ -163,9 +188,24 @@ For websites that require visiting a page first, then extracting the subscriptio
         }
     ],
     "update_time": "00:00",
-    "port": 2352
+    "port": 2352,
+    "test": {
+        "mode": "full",
+        "threads": 50,
+        "speed_threshold": 0.2
+    }
 }
 ```
+
+## Output Files
+
+After running, the following files will be generated:
+
+| File | Description |
+|------|-------------|
+| `free_nodes_raw.txt` | Merged nodes without testing |
+| `free_nodes_filtered.txt` | Filtered nodes after testing (basic/full mode) |
+| `free_nodes_filtered.csv` | Detailed test results in CSV format (full mode only) |
 
 ## Contributing
 

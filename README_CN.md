@@ -15,17 +15,27 @@
 - **本地服务器**：自动启动 HTTP 服务器，提供本地订阅链接
 - **定时更新**：支持每天定时自动刷新节点
 - **自定义端口**：HTTP 服务器端口可配置
+- **节点测试**：内置节点可用性测试，支持两种模式：
+  - **基础模式**：快速连通性测试
+  - **完整模式**：完整测速，包含延迟、上传/下载速度指标
+- **智能过滤**：根据可配置的速度阈值过滤低速节点
 
 ## 项目结构
 
 ```
 .
-├── main.py              # 主程序
-├── config.json          # 订阅源配置文件
-├── requirements.txt     # Python 依赖
-├── run.bat              # Windows 启动脚本
-├── run.sh               # Linux/Mac 启动脚本
-└── free_nodes_merged.txt # 合并后的订阅文件（运行后生成）
+├── main.py               # 主程序
+├── utility.py            # 工具函数
+├── config.json           # 订阅源配置文件
+├── requirements.txt      # Python 依赖
+├── run.bat               # Windows 启动脚本
+├── run.sh                # Linux/Mac 启动脚本
+├── tools/                # 节点测试工具
+│   ├── Windows/          # Windows xray-knife
+│   └── Linux/            # Linux xray-knife
+├── free_nodes_raw.txt    # 原始合并节点（运行后生成）
+├── free_nodes_filtered.txt # 测试过滤后的节点（运行后生成）
+└── free_nodes_filtered.csv # 测试结果CSV（完整模式下生成）
 ```
 
 ## 安装
@@ -70,16 +80,17 @@ python main.py
 程序运行后会：
 1. 从 `config.json` 中配置的所有源获取节点
 2. 合并并去重所有节点
-3. 生成 `free_nodes_merged.txt` 文件
-4. 启动本地 HTTP 服务器
-5. 持续运行，在设定时间自动更新节点
+3. 测试节点可用性（如果启用了测试功能）
+4. 根据测试模式生成输出文件
+5. 启动本地 HTTP 服务器
+6. 持续运行，在设定时间自动更新节点
 
 ### 导入订阅
 
 运行后，可使用以下地址导入客户端：
 
-- 本地：`http://127.0.0.1:<端口>/free_nodes_merged.txt`
-- 局域网：`http://<你的IP>:<端口>/free_nodes_merged.txt`
+- 本地：`http://127.0.0.1:<端口>/free_nodes_filtered.txt`（如果禁用测试则使用 `free_nodes_raw.txt`）
+- 局域网：`http://<你的IP>:<端口>/free_nodes_filtered.txt`
 
 > 注意：将 `<端口>` 替换为 `config.json` 中配置的端口（默认：2352）
 
@@ -97,7 +108,12 @@ python main.py
         }
     ],
     "update_time": "00:00",
-    "port": 2352
+    "port": 2352,
+    "test": {
+        "mode": "full",
+        "threads": 50,
+        "speed_threshold": 0.2
+    }
 }
 ```
 
@@ -108,6 +124,15 @@ python main.py
 | `query_list` | 数组 | 节点来源列表 |
 | `update_time` | 字符串 | 每日更新时间，格式为 `HH:MM`，如 `"00:00"` 表示凌晨 |
 | `port` | 数字 | HTTP 服务器端口（默认：2352） |
+| `test` | 对象 | 节点测试配置 |
+
+### 测试参数
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `mode` | 字符串 | 测试模式：`"none"`（跳过测试）、`"basic"`（仅连通性测试）、`"full"`（完整测速） |
+| `threads` | 数字 | 并发测试线程数（默认：50） |
+| `speed_threshold` | 数字 | 最低下载速度阈值，单位 Mb/s，用于过滤节点（完整模式下使用） |
 
 ### 模式一：直接订阅链接
 
@@ -163,9 +188,24 @@ python main.py
         }
     ],
     "update_time": "00:00",
-    "port": 2352
+    "port": 2352,
+    "test": {
+        "mode": "full",
+        "threads": 50,
+        "speed_threshold": 0.2
+    }
 }
 ```
+
+## 输出文件
+
+运行后会生成以下文件：
+
+| 文件 | 说明 |
+|------|------|
+| `free_nodes_raw.txt` | 未经测试的合并节点 |
+| `free_nodes_filtered.txt` | 测试过滤后的节点（basic/full 模式） |
+| `free_nodes_filtered.csv` | 详细测试结果CSV（仅 full 模式） |
 
 ## 欢迎贡献
 

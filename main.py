@@ -1,182 +1,19 @@
 
-import requests
-from bs4 import BeautifulSoup
-import base64
-import re
 from pprint import pprint
-import socket
 import json
 import subprocess
 from datetime import datetime
 from time import time, sleep
-from sys import platform
+import os
+from utility import *
+from urllib.parse import quote, unquote
+
 
 config = json.load(open("config.json", "r", encoding="utf-8"))
-def get_local_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        # doesn't even have to be reachable
-        s.connect(('10.254.254.254', 1))
-        local_ip = s.getsockname()[0]
-    except Exception:
-        local_ip = '127.0.0.1'
-    finally:
-        s.close()
-    return local_ip
-
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-}
-def get_nodes_directly(url, timeout=10):
-    print(f"\n-----开始获取节点--{url}---------")
-    all_nodes = ""
-    space = "  "
-    try:
-        response = requests.get(url, headers=headers, timeout=timeout)
-        print(f"{space}状态码: {response.status_code}")
-        print(f"{space}内容长度: {len(response.text)} 字符")
-        
-        if response.status_code == 200:
-            all_nodes = response.text.strip()
-        else:
-            print(f"{space}请求失败，状态码: {response.status_code}")
-    except requests.exceptions.RequestException as e:
-        print(f"{space}请求异常: {e}")
-    print("-----获取节点结束------------------------")
-    return all_nodes
-def get_nodes_by_two_steps(url, match1, match2, timeout=10):
-    print(f"\n-----开始获取节点--{url}---------")
-    new_url = ""
-    all_nodes = []
-    space = "  "
-    try:
-        response = requests.get(url, headers=headers, timeout=timeout)
-        print(f"{space}状态码: {response.status_code}")
-        print(f"{space}内容长度: {len(response.text)} 字符")
-        
-        if response.status_code == 200:
-            print(space+"请求成功！")
-            soup = BeautifulSoup(response.text, 'html.parser')
-            new_url = soup.select(match1)[0].get("href")
-            if not new_url.startswith("http"):
-                new_url = url + new_url
-        else:
-            print(f"{space}请求失败，状态码: {response.status_code}")
-    except requests.exceptions.RequestException as e:
-        print(f"{space}请求异常: {e}")
-    if (new_url != ""):
-        try:
-            response = requests.get(new_url, headers=headers, timeout=timeout)
-            print(f"{space}新url状态码: {response.status_code}")
-            print(f"{space}新url内容长度: {len(response.text)} 字符")
-            
-            if response.status_code == 200:
-                print(space+"新url请求成功！")
-                soup = BeautifulSoup(response.text, 'html.parser')
-                all_node_els = soup.select(match2)
-                for el in all_node_els:
-                    link_text = re.sub(r'\s+', '', el.getText())
-                    if link_text.endswith(".txt"):
-                        all_nodes.append(link_text)
-            else:
-                print(f"{space}新url请求失败，状态码: {response.status_code}")
-        except requests.exceptions.RequestException as e:
-            print(f"{space}新url请求异常: {e}")
-        print(all_nodes)
-    print("-----获取节点结束------------------------")
-    return all_nodes
-
-def quick_download_merge(all_urls, output='merged.txt'):
-    """
-    快速下载合并版本
-    """
-    all_links = set()
-    
-    print("开始下载订阅...")
-    
-    for urls in all_urls:
-        if type(urls) is str:
-            links = []
-            content = base64.b64decode(urls).decode('utf-8')
-            for line in content.split('\n'):
-                line = line.strip()
-                if re.match(r'^(vmess|ss|ssr|trojan|vless)://', line, re.I):
-                    links.append(line)
-            
-            if links:
-                before = len(all_links)
-                all_links.update(links)
-                after = len(all_links)
-                print(f"✓ 找到 {len(links)} 个链接，新增 {after-before} 个")
-            else:
-                print("✗ 未找到有效链接")
-            continue
-
-        print(f"\n下载: {urls}")
-        for url in urls:
-            try:
-                # 下载
-                r = requests.get(url, timeout=10, headers={
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                })
-                
-                content = r.text.strip()
-                
-                # 尝试Base64解码
-                try:
-                    clean = content.replace('\n', '').replace(' ', '')
-                    clean += '=' * (-len(clean) % 4)
-                    content = base64.b64decode(clean).decode('utf-8')
-                except:
-                    pass
-                
-                # 提取链接
-                links = []
-                for line in content.split('\n'):
-                    line = line.strip()
-                    if re.match(r'^(vmess|ss|ssr|trojan|vless)://', line, re.I):
-                        links.append(line)
-                
-                if links:
-                    before = len(all_links)
-                    all_links.update(links)
-                    after = len(all_links)
-                    print(f"✓ 找到 {len(links)} 个链接，新增 {after-before} 个")
-                else:
-                    print("✗ 未找到有效链接")
-                    
-            except Exception as e:
-                print(f"✗ 下载失败: {e}")
-    
-    # 合并保存
-    if all_links:
-        links_list = list(all_links)
-        plain = '\n'.join(links_list)
-        encoded = base64.b64encode(plain.encode()).decode()
-        
-        with open(output, 'w', encoding='utf-8') as f:
-            f.write(encoded)
-        
-        print(f"\n✅ 合并完成！")
-        print(f"📊 总节点数: {len(links_list)}")
-        print(f"💾 文件: {output}")
-        
-        # 显示订阅内容
-        # print(f"\n📋 订阅内容（可复制导入）:")
-        # print(encoded[:300] + "...\n")
-        print(f"订阅链接1：http://127.0.0.1:{config['port']}/free_nodes_merged.txt")
-        print(f"订阅链接2：http://{get_local_ip()}:{config['port']}/free_nodes_merged.txt")
-        print()
-        
-        return output
-    else:
-        print("\n❌ 未获取到任何节点")
-        return None
+print(f"当前系统: {system_type}")
 
 start_time = time()
 update_time = config["update_time"]
-roung = 0
 update_time = [int(x) for x in update_time.split(":")]
 proc = None
 
@@ -209,7 +46,64 @@ while True:
             else:
                 print("获取到节点内容，长度:", len(node), "字符")
 
-        result = quick_download_merge(all_nodes, 'free_nodes_merged.txt')
+        all_node_count = quick_download_merge(all_nodes, 'free_nodes_raw.txt')
+        node_test_tool = ""
+        if system_type == "Windows":
+            node_test_tool = f".\\tools\\{system_type}\\xray-knife.exe"
+        elif system_type == "Linux":
+            node_test_tool = f"./tools/{system_type}/xray-knife"
+        
+        # 可用性检测
+        if config["test"]["mode"] == "basic":
+            os.system(f"{node_test_tool} http -f free_nodes_raw.txt -t {str(config['test']['threads'])} -o free_nodes_filtered.txt")
+        elif config["test"]["mode"] == "full":
+            os.system(f"{node_test_tool} http -f free_nodes_raw.txt -t {str(config['test']['threads'])} --speedtest --sort --type csv -o free_nodes_filtered.csv")
+            
+            # 将csv中的上传、下载、延迟信息与节点名称拼起来，移除掉下载速度小于阈值的节点，输出到txt文件中
+            # 样例数据格式：link	status	reason	tls	ip	delay	code	download	upload	location	ttfb	connect_time
+            csv_lines = open("free_nodes_filtered.csv", "r", encoding="utf-8").readlines()
+            all_nodes = []
+            for line in csv_lines[1:]:
+                all_items = line.split(",")
+                if all_items[5]=="null" or all_items[7]=="null" or all_items[8]=="null":
+                    continue
+                link = all_items[0]
+                if line.startswith("vmess://") and line.find("#") == -1:
+                    download = float(all_items[7]) / 8.192
+                    uoload = float(all_items[8]) / 8.192
+                    delay = float(all_items[5])
+                    is_valid = all_items[1]=="passed" and download > config["test"]["speed_threshold"]
+                    if (is_valid):
+                        proto = link[:link.find("://")+3]
+                        content = link.replace(proto, "")
+                        content = base64.b64decode(content).decode('utf-8')
+                        content = json.loads(content)
+                        content["ps"] += f" | 延迟: {delay}ms | 下载: {download:.2f}Mb/s | 上传: {uoload:.2f}Mb/s"
+                        all_nodes.append(proto + base64.b64encode(json.dumps(content, ensure_ascii=False).encode('utf-8')).decode('utf-8'))
+                elif line.startswith("ss://") or line.startswith("ssr://") or line.startswith("trojan://") or line.startswith("vless://"):
+                    download = float(all_items[7]) / 8.192
+                    uoload = float(all_items[8]) / 8.192
+                    delay = float(all_items[5])
+                    if (download > config["test"]["speed_threshold"]):
+                        all_nodes.append(f"{link}{quote(' | 延迟: ')}{delay}{quote('ms | 下载: ')}{download:.2f}{quote('Mb/s | 上传：')}{uoload:.2f}Mb/s")
 
-        proc = subprocess.Popen([["python3","python"][platform.startswith("win")], "-m", "http.server", str(config["port"])])
+            with open("free_nodes_filtered.txt", "w", encoding="utf-8") as out_file:
+                for node in all_nodes:
+                    out_file.write(node + "\n")
+            
+        output_file_name = ["free_nodes_raw.txt", "free_nodes_filtered.txt"][config["test"]["mode"] == "full" or config["test"]["mode"] == "basic"]
+        node_count = len(open(output_file_name, 'r', encoding='utf-8').readlines()) / [1,2][config["test"]["mode"] == "full" or config["test"]["mode"] == "basic"]
+
+        output_text = f"原始订阅链接：http://{get_local_ip()}:{config['port']}/free_nodes_raw.txt\n"
+        output_text += f"过滤订阅链接：http://{get_local_ip()}:{config['port']}/{output_file_name}\n"
+        output_text += f"滤后节点总数: {len(all_nodes)}/{all_node_count} 个\n"
+        if config["test"]["mode"] == "full":
+            output_text += f" 过滤阈值：{config['test']['speed_threshold']} Mb/s\n"
+        output_text += f"更新轮次: {round}\n"
+        output_text += f"更新时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+        output_text += f" 测试模式: {config['test']['mode']}\n"
+        output_text += f"测试线程数: {config['test']['threads']}"
+        print_cool_box(output_text, "⚡")
+
+        proc = subprocess.Popen([["python3","python"][system_type=="Windows"], "-m", "http.server", str(config["port"])])
     sleep(59)

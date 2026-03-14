@@ -1,4 +1,11 @@
 {
+    "update_time": "03:00",
+    "port": 2352,
+    "test": {
+        "mode": "full",
+        "threads": 50,
+        "speed_threshold": 0.2
+    },
     "query_list": [
         {"url": "https://raw.githubusercontent.com/free-nodes/v2rayfree/main/v202603022"},
         {"url": "https://ghfast.top/https://raw.githubusercontent.com/free18/v2ray/refs/heads/main/v.txt"},
@@ -10,7 +17,5 @@
         {"url": "https://oneclash.cc", "match1": ".post_def_left", "match2": ".wznrys p"},
         {"url": "https://shadowsocksr.org", "match1": ".col-md-3 a", "match2": ".post-content-content p"},
         {"url": "https://clashgithub.com/", "match1": "#list a", "match2": ".entry-content.cf p"}
-    ],
-    "update_time": "03:00",
-    "port": 2352
+    ]
 }
