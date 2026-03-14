@@ -5,12 +5,54 @@ import subprocess
 from datetime import datetime
 from time import time, sleep
 import os
+import argparse
 from utility import *
 from urllib.parse import quote, unquote
 import requests
 
 
-config = json.load(open("config.json", "r", encoding="utf-8"))
+def parse_args():
+    """解析命令行参数"""
+    parser = argparse.ArgumentParser(
+        description='免费代理节点订阅聚合工具',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog='''
+示例:
+  python main.py                           # 使用默认配置 config.json
+  python main.py --config myconfig.json    # 使用自定义配置文件
+  python main.py -c /path/to/config.json   # 使用绝对路径配置
+        '''
+    )
+    parser.add_argument(
+        '-c', '--config',
+        type=str,
+        default='config.json',
+        help='指定配置文件路径 (默认: config.json)'
+    )
+    return parser.parse_args()
+
+def load_config(config_path):
+    """加载配置文件"""
+    if not os.path.exists(config_path):
+        print(f"{RED}错误: 配置文件不存在: {config_path}{RESET}")
+        print(f"{YELLOW}提示: 请确保配置文件存在，或使用 --config 指定正确的路径{RESET}")
+        exit(1)
+
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except json.JSONDecodeError as e:
+        print(f"{RED}错误: 配置文件格式错误: {e}{RESET}")
+        exit(1)
+    except Exception as e:
+        print(f"{RED}错误: 无法读取配置文件: {e}{RESET}")
+        exit(1)
+
+
+# 解析参数并加载配置
+args = parse_args()
+config = load_config(args.config)
+print(f"配置文件: {os.path.abspath(args.config)}")
 
 online_query_list = []
 try:
@@ -21,6 +63,7 @@ try:
 except: pass
 
 print(f"当前系统: {system_type}")
+print(f"终端模式: {'彩色' if COLOR_SUPPORTED else '黑白'} / {'UTF-8' if UTF8_SUPPORTED else 'ASCII'}")
 print(f"在线节点（{len(online_query_list)}）：")
 pprint(online_query_list)
 
