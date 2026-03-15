@@ -10,16 +10,7 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
 }
-system_type = ""
-if platform.system() == "Windows":
-    system_type = "Windows"
-elif platform.system() == "Linux":
-    system_type = "Linux"
-elif platform.system() == "Darwin":
-    system_type = "MacOS"
-else:
-    system_type = "Unknown"
-
+system_type = platform.system()
 # 颜色代码
 RED = '\033[91m'
 GREEN = '\033[92m'
@@ -218,6 +209,74 @@ def get_local_ip():
     except Exception as e:
         print(f"获取IP失败: {e}")
         return "127.0.0.1"
+class NodeExtractor:
+    NODE_PREFIXES = ("vmess://", "vless://", "ss://", "trojan://")
+
+    def __init__(self):
+        pass
+
+    def _try_b64_decode(self, s: str):
+        s = s.strip()
+        if not s:
+            return None
+        try:
+            padding = 4 - (len(s) % 4)
+            if padding and padding < 4:
+                s += "=" * padding
+            data = base64.b64decode(s, validate=False)
+            return data.decode(errors="ignore")
+        except Exception:
+            return None
+
+    def _extract_from_line(self, line: str):
+        res = []
+        stripped = line.strip()
+        if any(stripped.startswith(p) for p in self.NODE_PREFIXES):
+            res.append(stripped)
+            return res
+
+        for token in line.split():
+            for p in self.NODE_PREFIXES:
+                if p in token:
+                    idx = token.index(p)
+                    res.append(token[idx:])
+                    break
+        return res
+
+    def extract_and_encode(self, text: str) -> str:
+        """
+        输入：原始订阅文本（可能是 markdown、纯 base64、混合）
+        输出：所有节点按行拼接后整体 base64 编码的字符串
+        """
+        decoded = self._try_b64_decode(text)
+        if decoded and any(p in decoded for p in self.NODE_PREFIXES):
+            work_text = decoded
+        else:
+            work_text = text
+
+        nodes = []
+
+        for line in work_text.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+
+            inner_decoded = self._try_b64_decode(line)
+            if inner_decoded and any(p in inner_decoded for p in self.NODE_PREFIXES):
+                for inner_line in inner_decoded.splitlines():
+                    nodes.extend(self._extract_from_line(inner_line))
+                continue
+
+            nodes.extend(self._extract_from_line(line))
+
+        nodes = [n.strip() for n in nodes if n.strip()]
+        nodes = list(dict.fromkeys(nodes))  # 去重并保持顺序
+
+        if not nodes:
+            return ""
+
+        joined = "\n".join(nodes)
+        return base64.b64encode(joined.encode()).decode()
 
 def get_nodes_directly(url, timeout=10):
     print(f"\n-----开始获取节点--{url}---------")
@@ -236,6 +295,7 @@ def get_nodes_directly(url, timeout=10):
         print(f"{space}请求异常: {e}")
     print("-----获取节点结束------------------------")
     return all_nodes
+
 def get_nodes_by_two_steps(url, match1, match2, timeout=10):
     print(f"\n-----开始获取节点--{url}---------")
     new_url = ""
@@ -289,6 +349,7 @@ def quick_download_merge(all_urls, output='merged.txt') -> int:
     for urls in all_urls:
         if type(urls) is str:
             links = []
+            urls = NodeExtractor().extract_and_encode(urls)
             content = base64.b64decode(urls).decode('utf-8')
             for line in content.split('\n'):
                 line = line.strip()
@@ -313,6 +374,7 @@ def quick_download_merge(all_urls, output='merged.txt') -> int:
                 })
                 
                 content = r.text.strip()
+                content = NodeExtractor().extract_and_encode(content)
                 
                 # 尝试Base64解码
                 try:

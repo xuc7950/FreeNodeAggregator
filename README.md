@@ -1,199 +1,186 @@
-# Free Proxy Node Subscription Aggregator
+<div align="center">
 
-English | [简体中文](README_CN.md)
+# FreeNodeAggregator
 
-> This project works best with [Karing](https://github.com/KaringX/karing)! Karing is a cross-platform proxy client that supports multiple protocols with a clean and intuitive interface.
+**Free Proxy Node Subscription Aggregator**
 
-A Python tool that automatically fetches, merges, and deduplicates proxy nodes from multiple free sources, generating a unified subscription link.
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.6%2B-brightgreen.svg)](https://www.python.org/)
+[![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](https://www.docker.com/)
+
+A Python tool that automatically fetches, merges, tests, and deduplicates proxy nodes from multiple free sources.
+
+English | **[简体中文](README_CN.md)**
+
+</div>
+
+---
 
 ## Features
 
-- **Multi-source Aggregation**: Fetch nodes from multiple free subscription sources simultaneously
-- **Auto Deduplication**: Automatically remove duplicate nodes during merging
-- **Multi-protocol Support**: Support vmess, ss, ssr, trojan, vless and other mainstream protocols
-- **Base64 Encoding**: Output standard Base64 encoded subscription content, ready to import into clients
-- **Local Server**: Automatically start HTTP server providing local subscription links
-- **Scheduled Updates**: Automatically refresh nodes at a specified time daily
-- **Custom Port**: Configurable HTTP server port
-- **Node Testing**: Built-in node availability testing with two modes:
-  - **Basic Mode**: Quick connectivity test
-  - **Full Mode**: Comprehensive speed test with latency, download/upload speed metrics
-- **Smart Filtering**: Filter out low-speed nodes based on configurable speed threshold
+| Feature | Description |
+|:---:|:---|
+| 🌐 **Multi-source Aggregation** | Fetch nodes from multiple free subscription sources simultaneously |
+| 🔀 **Auto Deduplication** | Smart duplicate removal during merging |
+| 📡 **Multi-protocol Support** | Support vmess, ss, ssr, trojan, vless protocols |
+| 📦 **Standard Output** | Base64 encoded subscription content, ready to import |
+| 🖥️ **Local Server** | Built-in HTTP server for subscription links |
+| ⏰ **Scheduled Updates** | Automatic daily node refresh at configured time |
+| 🔄 **Loop Testing** | Periodic node testing without re-fetching |
+| 🔧 **Dynamic Config** | Python expressions supported in URLs |
+| 🧪 **Node Testing** | Connectivity test and comprehensive speed test |
+| 🚀 **Smart Filtering** | Auto-filter low-speed nodes based on threshold |
+| 🐳 **Docker Support** | Full Docker compatibility |
+| 🍎 **Cross-platform** | Support Windows, Linux, and macOS |
+| 🎨 **Terminal Adaptation** | Auto-detect terminal capabilities for color/ASCII mode |
 
-## Project Structure
+## Quick Start
 
-```
-.
-├── main.py               # Main program
-├── utility.py            # Utility functions
-├── config.json           # Subscription source configuration
-├── requirements.txt      # Python dependencies
-├── run.bat               # Windows startup script
-├── run.sh                # Linux/Mac startup script
-├── tools/                # Node testing tools
-│   ├── Windows/          # Windows xray-knife
-│   └── Linux/            # Linux xray-knife
-├── free_nodes_raw.txt    # Raw merged nodes (generated after running)
-├── free_nodes_filtered.txt # Filtered nodes after testing (generated after running)
-└── free_nodes_filtered.csv # Test results CSV (generated in full mode)
-```
+### Option 1: Local Run
 
-## Installation
-
-### Requirements
-
-- Python 3.6+
-
-### Install Dependencies
-
-**Windows:**
 ```bash
+# Clone repository
+git clone https://github.com/xuc7950/FreeNodeAggregator.git
+cd FreeNodeAggregator
+
+# Install dependencies
 pip install -r requirements.txt
-```
 
-**Linux/Mac:**
-```bash
-pip3 install -r requirements.txt
-```
-
-## Usage
-
-### Quick Start
-
-**Windows:**
-Double-click `run.bat` or execute:
-```bash
-run.bat
-```
-
-**Linux/Mac:**
-```bash
-bash run.sh
-```
-
-### Manual Run
-
-```bash
+# Run with default config
 python main.py
 ```
 
-### Custom Config File
+<details>
+<summary>📖 Platform-specific Instructions</summary>
 
-Use `--config` or `-c` to specify a custom configuration file:
-
-```bash
-python main.py --config myconfig.json
-python main.py -c /path/to/config.json
+**Windows:**
+```cmd
+run.bat
 ```
 
-### Docker Deployment
-
-**1. Load Docker Image:**
+**Linux/macOS:**
 ```bash
+pip3 install -r requirements.txt
+python3 main.py
+```
+
+</details>
+
+### Option 2: Docker Deployment
+
+```bash
+# Load image
 sudo docker load -i FreeNodesAggregator@0.0.2-Docker.tar
-```
 
-**2. Run Container with Custom Config:**
-```bash
+# Run container
 sudo docker run --name free_node_aggregator \
   -d \
   -p 2352:2352 \
-  -v /path/to/your/config.json:/FreeNodeAggregator/config.json \
+  -v /path/to/config.json:/FreeNodeAggregator/config.json \
   free_node_aggregator:0.0.2
-```
 
-**Parameter Explanation:**
-| Parameter | Description |
-|-----------|-------------|
-| `-d` | Run in background (detached mode) |
-| `-p 2352:2352` | Map container port to host port |
-| `-v` | Mount custom config file to container |
-
-**3. View Logs:**
-```bash
+# View logs
 sudo docker logs -f free_node_aggregator
 ```
 
-**4. Stop/Restart Container:**
+<details>
+<summary>📖 Docker Commands</summary>
+
 ```bash
+# Stop container
 sudo docker stop free_node_aggregator
+
+# Start container
 sudo docker start free_node_aggregator
+
+# Restart container
+sudo docker restart free_node_aggregator
+
+# Remove container
+sudo docker rm -f free_node_aggregator
 ```
 
-The program will:
-1. Fetch nodes from all sources configured in `config.json`
-2. Merge and deduplicate all nodes
-3. Test node availability (if testing is enabled)
-4. Generate output files based on testing mode
-5. Start a local HTTP server
-6. Keep running and automatically update nodes at the scheduled time
+</details>
 
-### Import Subscription
+## Command Line Arguments
 
-After running, use the following addresses to import into your client:
+| Argument | Short | Description | Default |
+|:---:|:---:|:---|:---:|
+| `--config` | `-c` | Specify config file path | `config.json` |
 
-- Local: `http://127.0.0.1:<port>/free_nodes_filtered.txt` (or `free_nodes_raw.txt` if testing is disabled)
-- LAN: `http://<your_IP>:<port>/free_nodes_filtered.txt`
+**Usage:**
 
-> Note: Replace `<port>` with the port configured in `config.json` (default: 2352)
+```bash
+# Use default config
+python main.py
+
+# Use custom config file
+python main.py --config myconfig.json
+python main.py -c /path/to/config.json
+
+# Show help
+python main.py --help
+```
 
 ## Configuration
-
-Edit `config.json` to configure subscription sources and server settings.
 
 ### Config File Structure
 
 ```json
 {
-    "query_list": [
-        {
-            "url": "https://example.com/subscribe"
-        }
-    ],
-    "update_time": "00:00",
+    "update_time": "03:00",
     "port": 2352,
+    "loop_test_interval": 5,
     "test": {
         "mode": "full",
-        "threads": 50,
+        "threads": 100,
         "speed_threshold": 0.2
-    }
+    },
+    "query_list": [
+        {"url": "https://example.com/subscribe"}
+    ]
 }
 ```
 
 ### Global Parameters
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `query_list` | Array | List of node sources |
-| `update_time` | String | Daily update time in `HH:MM` format, e.g. `"00:00"` for midnight |
-| `port` | Number | HTTP server port (default: 2352) |
-| `test` | Object | Node testing configuration |
+| Parameter | Type | Description | Default |
+|:---|:---:|:---|:---:|
+| `update_time` | string | Daily update time (`HH:MM`) | `"03:00"` |
+| `port` | number | HTTP server port | `2352` |
+| `loop_test_interval` | number | Loop test interval in minutes | `5` |
+| `test` | object | Node testing configuration | - |
+| `query_list` | array | Node source list | `[]` |
 
 ### Test Parameters
 
 | Parameter | Type | Description |
-|-----------|------|-------------|
-| `mode` | String | Testing mode: `"none"` (skip testing), `"basic"` (connectivity test only), `"full"` (speed test with metrics) |
-| `threads` | Number | Number of concurrent test threads (default: 50) |
-| `speed_threshold` | Number | Minimum download speed threshold in Mb/s for filtering nodes (used in full mode) |
+|:---|:---:|:---|
+| `mode` | string | `none` / `basic` / `full` |
+| `threads` | number | Concurrent test threads (recommended: 10-100) |
+| `speed_threshold` | number | Minimum speed threshold in Mb/s (`full` mode only) |
 
-### Mode 1: Direct Subscription URL
+**Test Modes:**
 
-For URLs that return node content directly (Base64 encoded or plain text).
+| Mode | Description |
+|:---:|:---|
+| `none` | Skip testing, output raw nodes directly |
+| `basic` | Connectivity test only |
+| `full` | Full speed test with latency, download/upload metrics, and auto-filtering |
 
-#### Example
+### Node Source Configuration
+
+**Mode 1: Direct Subscription URL**
+
+For URLs that return node content directly:
 
 ```json
-{
-    "url": "https://raw.githubusercontent.com/free-nodes/v2rayfree/main/v202603022"
-}
+{"url": "https://example.com/nodes.txt"}
 ```
 
-### Mode 2: Two-step Fetch Mode
+**Mode 2: Two-step Fetch**
 
-For websites that require visiting a page first, then extracting the subscription link.
-
-#### Example
+For websites that require visiting a page first, then extracting subscription links:
 
 ```json
 {
@@ -203,21 +190,35 @@ For websites that require visiting a page first, then extracting the subscriptio
 }
 ```
 
-#### Parameters
-
 | Parameter | Description |
-|-----------|-------------|
-| `url` | The target website URL |
-| `match1` | CSS selector to find the subscription link in the first page |
+|:---:|:---|
+| `url` | Target website URL |
+| `match1` | CSS selector to find subscription link on the first page |
 | `match2` | CSS selector to extract node content from the second page |
+
+**Mode 3: Dynamic URL**
+
+Support Python expressions in URLs using `{expression}` syntax:
+
+```json
+{"url": "https://example.com/nodes_{datetime.now().strftime('%Y%m%d')}.txt"}
+```
 
 ### Complete Example
 
 ```json
 {
+    "update_time": "03:00",
+    "port": 2352,
+    "loop_test_interval": 5,
+    "test": {
+        "mode": "full",
+        "threads": 100,
+        "speed_threshold": 0.2
+    },
     "query_list": [
         {
-            "url": "https://raw.githubusercontent.com/free-nodes/v2rayfree/main/v202603022"
+            "url": "https://raw.githubusercontent.com/free-nodes/v2rayfree/main/v{datetime.now().strftime('%Y%m%d')}2"
         },
         {
             "url": "https://nodefree.me",
@@ -229,58 +230,79 @@ For websites that require visiting a page first, then extracting the subscriptio
             "match1": ".col-md-3 a",
             "match2": ".post-content-content p"
         }
-    ],
-    "update_time": "00:00",
-    "port": 2352,
-    "test": {
-        "mode": "full",
-        "threads": 50,
-        "speed_threshold": 0.2
-    }
+    ]
 }
 ```
 
 ## Output Files
 
-After running, the following files will be generated:
-
 | File | Description |
-|------|-------------|
-| `free_nodes_raw.txt` | Merged nodes without testing |
-| `free_nodes_filtered.txt` | Filtered nodes after testing (basic/full mode) |
-| `free_nodes_filtered.csv` | Detailed test results in CSV format (full mode only) |
+|:---|:---|
+| `free_nodes_raw.txt` | Raw merged nodes (untested) |
+| `free_nodes_filtered.txt` | Filtered nodes after testing |
+| `free_nodes_filtered.csv` | Detailed speed test results (`full` mode only) |
+
+## Subscription URL
+
+After running, import into your client using:
+
+| Type | URL |
+|:---:|:---|
+| Local | `http://127.0.0.1:2352/free_nodes_filtered.txt` |
+| LAN | `http://<YOUR_IP>:2352/free_nodes_filtered.txt` |
+
+> 💡 **Tip**: Works best with [Karing](https://github.com/KaringX/karing), a cross-platform proxy client with a clean and intuitive interface.
+
+## Project Structure
+
+```
+FreeNodeAggregator/
+├── main.py               # Main program entry
+├── utility.py            # Utility functions
+├── config.json           # Configuration file
+├── requirements.txt      # Python dependencies
+├── run.bat               # Windows startup script
+├── tools/                # Node testing tools
+│   ├── Windows/          # Windows xray-knife
+│   ├── Linux/            # Linux xray-knife
+│   └── MacOS/            # macOS xray-knife
+└── README.md             # Documentation
+```
+
+## Environment Variables
+
+| Variable | Description |
+|:---:|:---|
+| `FORCE_COLOR` | Force enable color output |
+| `NO_COLOR` | Disable color output |
+| `TERM=dumb` | Disable color output |
 
 ## Contributing
 
-Welcome to contribute node URLs! 🎉
-
-This project relies on community contributions to keep growing the available nodes. If you know of any free proxy node sources, please contribute by:
+Contributions are welcome!
 
 1. **Fork** this repository
 2. **Add** your node source to `config.json`
 3. **Submit** a Pull Request
 
-Your contribution helps make this tool more useful for everyone. Together we can build a better node pool!
+**Guidelines:**
 
-### Contribution Guidelines
-
-- Only add **legitimate** free node sources
-- Test the URL before submitting (ensure it returns valid proxy links)
-- Provide the source website URL clearly
-- Avoid duplicate sources that already exist in the config
+- ✅ Only add legitimate free node sources
+- ✅ Ensure URL is accessible and returns valid nodes before submitting
+- ✅ Avoid duplicate sources
 
 ## Dependencies
 
-- `requests` - HTTP requests
-- `beautifulsoup4` - HTML parsing
+- [requests](https://pypi.org/project/requests/) - HTTP requests
+- [beautifulsoup4](https://pypi.org/project/beautifulsoup4/) - HTML parsing
 
 ## Disclaimer
 
-1. This tool is for learning and research purposes only
+1. For learning and research purposes only
 2. Free nodes are not guaranteed to be stable, recommended for testing only
-3. Please comply with local laws and regulations, use network resources legally
-4. Subscription sources are from public networks, please verify security yourself
+3. Please comply with local laws and regulations
+4. Verify security of subscription sources yourself
 
 ## License
 
-MIT
+[MIT](LICENSE)

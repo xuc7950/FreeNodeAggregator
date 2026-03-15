@@ -1,199 +1,186 @@
-# 免费代理节点订阅聚合工具
+<div align="center">
 
-[English](README.md) | 简体中文
+# FreeNodeAggregator
 
-> 本项目配合 [Karing](https://github.com/KaringX/karing) 使用更佳！Karing 是一款跨平台的代理客户端，支持多种协议，界面简洁易用。
+**免费代理节点订阅聚合工具**
 
-一个自动从多个免费节点源获取、合并并去重代理节点的 Python 工具，支持生成统一的订阅链接。
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.6%2B-brightgreen.svg)](https://www.python.org/)
+[![Docker](https://img.shields.io/badge/docker-supported-blue.svg)](https://www.docker.com/)
 
-## 功能特点
+一个自动从多个免费节点源获取、合并、测试并去重的代理节点聚合工具。
 
-- **多源聚合**：从多个免费节点订阅源同时获取节点
-- **自动去重**：合并时自动去除重复节点
-- **多协议支持**：支持 vmess、ss、ssr、trojan、vless 等主流协议
-- **Base64 编码**：输出标准 Base64 编码的订阅内容，可直接导入客户端
-- **本地服务器**：自动启动 HTTP 服务器，提供本地订阅链接
-- **定时更新**：支持每天定时自动刷新节点
-- **自定义端口**：HTTP 服务器端口可配置
-- **节点测试**：内置节点可用性测试，支持两种模式：
-  - **基础模式**：快速连通性测试
-  - **完整模式**：完整测速，包含延迟、上传/下载速度指标
-- **智能过滤**：根据可配置的速度阈值过滤低速节点
+**[English](README.md)** | 简体中文
 
-## 项目结构
+</div>
 
-```
-.
-├── main.py               # 主程序
-├── utility.py            # 工具函数
-├── config.json           # 订阅源配置文件
-├── requirements.txt      # Python 依赖
-├── run.bat               # Windows 启动脚本
-├── run.sh                # Linux/Mac 启动脚本
-├── tools/                # 节点测试工具
-│   ├── Windows/          # Windows xray-knife
-│   └── Linux/            # Linux xray-knife
-├── free_nodes_raw.txt    # 原始合并节点（运行后生成）
-├── free_nodes_filtered.txt # 测试过滤后的节点（运行后生成）
-└── free_nodes_filtered.csv # 测试结果CSV（完整模式下生成）
-```
+---
 
-## 安装
+## 功能特性
 
-### 前置要求
+| 特性 | 描述 |
+|:---:|:---|
+| 🌐 **多源聚合** | 同时从多个免费订阅源获取节点 |
+| 🔀 **自动去重** | 合并时智能去除重复节点 |
+| 📡 **多协议支持** | 支持 vmess、ss、ssr、trojan、vless 等主流协议 |
+| 📦 **标准输出** | 输出 Base64 编码的订阅内容，可直接导入客户端 |
+| 🖥️ **本地服务** | 自动启动 HTTP 服务器，提供本地订阅链接 |
+| ⏰ **定时更新** | 每天定时自动刷新节点 |
+| � **循环测试** | 支持定时重复测试，无需重新获取节点 |
+| �� **动态配置** | 支持 Python 表达式动态生成 URL |
+| 🧪 **节点测试** | 内置连通性测试与完整测速功能 |
+| 🚀 **智能过滤** | 根据速度阈值自动过滤低速节点 |
+| 🐳 **Docker 支持** | 完美兼容 Docker 容器部署 |
+| � **跨平台支持** | 支持 Windows、Linux、macOS |
+| �� **终端适配** | 自动检测终端环境，适配彩色/黑白模式 |
 
-- Python 3.6+
+## 快速开始
 
-### 安装依赖
+### 方式一：本地运行
 
-**Windows:**
 ```bash
+# 克隆仓库
+git clone https://github.com/xuc7950/FreeNodeAggregator.git
+cd FreeNodeAggregator
+
+# 安装依赖
 pip install -r requirements.txt
-```
 
-**Linux/Mac:**
-```bash
-pip3 install -r requirements.txt
-```
-
-## 使用方法
-
-### 快速启动
-
-**Windows:**
-双击运行 `run.bat` 或执行：
-```bash
-run.bat
-```
-
-**Linux/Mac:**
-```bash
-bash run.sh
-```
-
-### 手动运行
-
-```bash
+# 使用默认配置运行
 python main.py
 ```
 
-### 使用自定义配置文件
+<details>
+<summary>📖 各平台运行方式</summary>
 
-使用 `--config` 或 `-c` 参数指定自定义配置文件：
-
-```bash
-python main.py --config myconfig.json
-python main.py -c /path/to/config.json
+**Windows:**
+```cmd
+run.bat
 ```
 
-### Docker 部署
-
-**1. 加载 Docker 镜像：**
+**Linux/macOS:**
 ```bash
+pip3 install -r requirements.txt
+python3 main.py
+```
+
+</details>
+
+### 方式二：Docker 部署
+
+```bash
+# 1. 加载镜像
 sudo docker load -i FreeNodesAggregator@0.0.2-Docker.tar
-```
 
-**2. 使用自定义配置启动容器：**
-```bash
+# 2. 启动容器
 sudo docker run --name free_node_aggregator \
   -d \
   -p 2352:2352 \
-  -v /path/to/your/config.json:/FreeNodeAggregator/config.json \
+  -v /path/to/config.json:/FreeNodeAggregator/config.json \
   free_node_aggregator:0.0.2
-```
 
-**参数说明：**
-| 参数 | 说明 |
-|------|------|
-| `-d` | 后台运行（守护模式） |
-| `-p 2352:2352` | 将容器端口映射到主机端口 |
-| `-v` | 挂载自定义配置文件到容器 |
-
-**3. 查看日志：**
-```bash
+# 3. 查看日志
 sudo docker logs -f free_node_aggregator
 ```
 
-**4. 停止/重启容器：**
+<details>
+<summary>📖 Docker 常用命令</summary>
+
 ```bash
+# 停止容器
 sudo docker stop free_node_aggregator
+
+# 启动容器
 sudo docker start free_node_aggregator
+
+# 重启容器
+sudo docker restart free_node_aggregator
+
+# 删除容器
+sudo docker rm -f free_node_aggregator
 ```
 
-程序运行后会：
-1. 从 `config.json` 中配置的所有源获取节点
-2. 合并并去重所有节点
-3. 测试节点可用性（如果启用了测试功能）
-4. 根据测试模式生成输出文件
-5. 启动本地 HTTP 服务器
-6. 持续运行，在设定时间自动更新节点
+</details>
 
-### 导入订阅
+## 命令行参数
 
-运行后，可使用以下地址导入客户端：
+| 参数 | 简写 | 说明 | 默认值 |
+|:---:|:---:|:---|:---:|
+| `--config` | `-c` | 指定配置文件路径 | `config.json` |
 
-- 本地：`http://127.0.0.1:<端口>/free_nodes_filtered.txt`（如果禁用测试则使用 `free_nodes_raw.txt`）
-- 局域网：`http://<你的IP>:<端口>/free_nodes_filtered.txt`
+**使用示例：**
 
-> 注意：将 `<端口>` 替换为 `config.json` 中配置的端口（默认：2352）
+```bash
+# 使用默认配置
+python main.py
+
+# 使用自定义配置文件
+python main.py --config myconfig.json
+python main.py -c /path/to/config.json
+
+# 查看帮助
+python main.py --help
+```
 
 ## 配置说明
-
-编辑 `config.json` 配置订阅源和服务器设置。
 
 ### 配置文件结构
 
 ```json
 {
-    "query_list": [
-        {
-            "url": "https://example.com/subscribe"
-        }
-    ],
-    "update_time": "00:00",
+    "update_time": "03:00",
     "port": 2352,
+    "loop_test_interval": 5,
     "test": {
         "mode": "full",
-        "threads": 50,
+        "threads": 100,
         "speed_threshold": 0.2
-    }
+    },
+    "query_list": [
+        {"url": "https://example.com/subscribe"}
+    ]
 }
 ```
 
 ### 全局参数
 
-| 参数 | 类型 | 说明 |
-|------|------|------|
-| `query_list` | 数组 | 节点来源列表 |
-| `update_time` | 字符串 | 每日更新时间，格式为 `HH:MM`，如 `"00:00"` 表示凌晨 |
-| `port` | 数字 | HTTP 服务器端口（默认：2352） |
-| `test` | 对象 | 节点测试配置 |
+| 参数 | 类型 | 说明 | 默认值 |
+|:---|:---:|:---|:---:|
+| `update_time` | string | 每日更新时间，格式 `HH:MM` | `"03:00"` |
+| `port` | number | HTTP 服务器端口 | `2352` |
+| `loop_test_interval` | number | 循环测试间隔（分钟） | `5` |
+| `test` | object | 节点测试配置 | - |
+| `query_list` | array | 节点来源列表 | `[]` |
 
 ### 测试参数
 
 | 参数 | 类型 | 说明 |
-|------|------|------|
-| `mode` | 字符串 | 测试模式：`"none"`（跳过测试）、`"basic"`（仅连通性测试）、`"full"`（完整测速） |
-| `threads` | 数字 | 并发测试线程数（默认：50） |
-| `speed_threshold` | 数字 | 最低下载速度阈值，单位 Mb/s，用于过滤节点（完整模式下使用） |
+|:---|:---:|:---|
+| `mode` | string | `none` / `basic` / `full` |
+| `threads` | number | 并发测试线程数（建议 10-100） |
+| `speed_threshold` | number | 最低速度阈值 Mb/s（仅 `full` 模式生效） |
 
-### 模式一：直接订阅链接
+**测试模式说明：**
 
-适用于直接返回节点内容的 URL（Base64 编码或明文）。
+| 模式 | 说明 |
+|:---:|:---|
+| `none` | 跳过测试，直接输出原始节点 |
+| `basic` | 连通性测试，仅检测节点可用性 |
+| `full` | 完整测速，包含延迟、上传/下载速度，并自动过滤低速节点 |
 
-#### 配置示例
+### 节点源配置
+
+**模式一：直接订阅链接**
+
+适用于直接返回节点内容的 URL：
 
 ```json
-{
-    "url": "https://raw.githubusercontent.com/free-nodes/v2rayfree/main/v202603022"
-}
+{"url": "https://example.com/nodes.txt"}
 ```
 
-### 模式二：两步获取模式
+**模式二：两步获取模式**
 
-适用于需要先访问页面再提取订阅链接的网站。
-
-#### 配置示例
+适用于需要先访问页面再提取订阅链接的网站：
 
 ```json
 {
@@ -203,21 +190,35 @@ sudo docker start free_node_aggregator
 }
 ```
 
-#### 参数说明
-
 | 参数 | 说明 |
-|------|------|
+|:---:|:---|
 | `url` | 目标网站 URL |
-| `match1` | 在第一个页面中查找订阅链接的 CSS 选择器 |
-| `match2` | 在第二个页面中提取节点内容的 CSS 选择器 |
+| `match1` | CSS 选择器，用于在首页查找订阅链接 |
+| `match2` | CSS 选择器，用于在次页提取节点内容 |
+
+**模式三：动态 URL**
+
+支持在 URL 中嵌入 Python 表达式，使用 `{表达式}` 语法：
+
+```json
+{"url": "https://example.com/nodes_{datetime.now().strftime('%Y%m%d')}.txt"}
+```
 
 ### 完整配置示例
 
 ```json
 {
+    "update_time": "03:00",
+    "port": 2352,
+    "loop_test_interval": 5,
+    "test": {
+        "mode": "full",
+        "threads": 100,
+        "speed_threshold": 0.2
+    },
     "query_list": [
         {
-            "url": "https://raw.githubusercontent.com/free-nodes/v2rayfree/main/v202603022"
+            "url": "https://raw.githubusercontent.com/free-nodes/v2rayfree/main/v{datetime.now().strftime('%Y%m%d')}2"
         },
         {
             "url": "https://nodefree.me",
@@ -229,52 +230,73 @@ sudo docker start free_node_aggregator
             "match1": ".col-md-3 a",
             "match2": ".post-content-content p"
         }
-    ],
-    "update_time": "00:00",
-    "port": 2352,
-    "test": {
-        "mode": "full",
-        "threads": 50,
-        "speed_threshold": 0.2
-    }
+    ]
 }
 ```
 
 ## 输出文件
 
-运行后会生成以下文件：
-
 | 文件 | 说明 |
-|------|------|
-| `free_nodes_raw.txt` | 未经测试的合并节点 |
-| `free_nodes_filtered.txt` | 测试过滤后的节点（basic/full 模式） |
-| `free_nodes_filtered.csv` | 详细测试结果CSV（仅 full 模式） |
+|:---|:---|
+| `free_nodes_raw.txt` | 原始合并节点（未测试） |
+| `free_nodes_filtered.txt` | 测试过滤后的可用节点 |
+| `free_nodes_filtered.csv` | 详细测速结果（仅 `full` 模式） |
 
-## 欢迎贡献
+## 订阅地址
 
-欢迎大家贡献节点 URL！🎉
+程序运行后，可通过以下地址导入客户端：
 
-本项目的节点库依赖于社区的贡献才能不断壮大。如果你知道任何免费的代理节点来源，欢迎通过以下方式贡献：
+| 类型 | 地址 |
+|:---:|:---|
+| 本地 | `http://127.0.0.1:2352/free_nodes_filtered.txt` |
+| 局域网 | `http://<你的IP>:2352/free_nodes_filtered.txt` |
+
+> 💡 **提示**：推荐配合 [Karing](https://github.com/KaringX/karing) 使用，一款跨平台的代理客户端，界面简洁易用。
+
+## 项目结构
+
+```
+FreeNodeAggregator/
+├── main.py               # 主程序入口
+├── utility.py            # 工具函数库
+├── config.json           # 配置文件
+├── requirements.txt      # Python 依赖
+├── run.bat               # Windows 启动脚本
+├── tools/                # 节点测试工具
+│   ├── Windows/          # Windows xray-knife
+│   ├── Linux/            # Linux xray-knife
+│   └── MacOS/            # macOS xray-knife
+└── README.md             # 项目文档
+```
+
+## 环境变量
+
+| 变量 | 说明 |
+|:---:|:---|
+| `FORCE_COLOR` | 强制启用彩色输出 |
+| `NO_COLOR` | 禁用彩色输出 |
+| `TERM=dumb` | 禁用彩色输出 |
+
+## 贡献指南
+
+欢迎贡献节点源 URL！
 
 1. **Fork** 本仓库
 2. **添加** 你的节点源到 `config.json`
 3. **提交** Pull Request
 
-你的贡献会让这个工具对每个人都有帮助。让我们一起构建更好的节点池！
+**贡献规范：**
 
-### 贡献指南
+- ✅ 只添加合法的免费节点来源
+- ✅ 提交前确保 URL 可访问并返回有效节点
+- ✅ 避免添加重复来源
 
-- 只添加**合法**的免费节点来源
-- 提交前测试 URL（确保返回有效的代理链接）
-- 清晰提供来源网站 URL
-- 避免添加配置中已存在的重复来源
+## 依赖项
 
-## 依赖
+- [requests](https://pypi.org/project/requests/) - HTTP 请求库
+- [beautifulsoup4](https://pypi.org/project/beautifulsoup4/) - HTML 解析库
 
-- `requests` - HTTP 请求
-- `beautifulsoup4` - HTML 解析
-
-## 注意事项
+## 免责声明
 
 1. 本工具仅供学习研究使用
 2. 免费节点稳定性不保证，建议仅用于测试
@@ -283,4 +305,4 @@ sudo docker start free_node_aggregator
 
 ## 许可证
 
-MIT
+本项目基于 [MIT](LICENSE) 许可证开源。
