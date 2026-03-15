@@ -24,7 +24,7 @@
 | 🔀 **自动去重** | 合并时智能去除重复节点 |
 | 📡 **多协议支持** | 支持 vmess、ss、ssr、trojan、vless 等主流协议 |
 | 📦 **标准输出** | 输出 Base64 编码的订阅内容，可直接导入客户端 |
-| 🖥️ **本地服务** | 自动启动 HTTP 服务器，提供本地订阅链接 |
+| 🖥️ **内置服务器** | 基于 Flask 的 HTTP 服务器，提供订阅链接 |
 | ⏰ **定时更新** | 每天定时自动刷新节点 |
 | � **循环测试** | 支持定时重复测试，无需重新获取节点 |
 | �� **动态配置** | 支持 Python 表达式动态生成 URL |
@@ -69,18 +69,18 @@ python3 main.py
 ### 方式二：Docker 部署
 
 ```bash
-# 1. 加载镜像
-sudo docker load -i FreeNodesAggregator@0.0.2-Docker.tar
+# 构建镜像
+docker build -t free_node_aggregator .
 
-# 2. 启动容器
-sudo docker run --name free_node_aggregator \
+# 启动容器
+docker run --name free_node_aggregator \
   -d \
   -p 2352:2352 \
   -v /path/to/config.json:/FreeNodeAggregator/config.json \
-  free_node_aggregator:0.0.2
+  free_node_aggregator
 
-# 3. 查看日志
-sudo docker logs -f free_node_aggregator
+# 查看日志
+docker logs -f free_node_aggregator
 ```
 
 <details>
@@ -88,16 +88,16 @@ sudo docker logs -f free_node_aggregator
 
 ```bash
 # 停止容器
-sudo docker stop free_node_aggregator
+docker stop free_node_aggregator
 
 # 启动容器
-sudo docker start free_node_aggregator
+docker start free_node_aggregator
 
 # 重启容器
-sudo docker restart free_node_aggregator
+docker restart free_node_aggregator
 
 # 删除容器
-sudo docker rm -f free_node_aggregator
+docker rm -f free_node_aggregator
 ```
 
 </details>
@@ -259,9 +259,11 @@ python main.py --help
 FreeNodeAggregator/
 ├── main.py               # 主程序入口
 ├── utility.py            # 工具函数库
+├── server.py             # Flask HTTP 服务器
 ├── config.json           # 配置文件
 ├── requirements.txt      # Python 依赖
 ├── run.bat               # Windows 启动脚本
+├── Dockerfile            # Docker 构建文件
 ├── tools/                # 节点测试工具
 │   ├── Windows/          # Windows xray-knife
 │   ├── Linux/            # Linux xray-knife
@@ -269,32 +271,17 @@ FreeNodeAggregator/
 └── README.md             # 项目文档
 ```
 
-## 环境变量
-
-| 变量 | 说明 |
-|:---:|:---|
-| `FORCE_COLOR` | 强制启用彩色输出 |
-| `NO_COLOR` | 禁用彩色输出 |
-| `TERM=dumb` | 禁用彩色输出 |
-
-## 贡献指南
-
-欢迎贡献节点源 URL！
-
-1. **Fork** 本仓库
-2. **添加** 你的节点源到 `config.json`
-3. **提交** Pull Request
-
-**贡献规范：**
-
-- ✅ 只添加合法的免费节点来源
-- ✅ 提交前确保 URL 可访问并返回有效节点
-- ✅ 避免添加重复来源
-
 ## 依赖项
 
 - [requests](https://pypi.org/project/requests/) - HTTP 请求库
 - [beautifulsoup4](https://pypi.org/project/beautifulsoup4/) - HTML 解析库
+- [flask](https://pypi.org/project/flask/) - Web 服务器框架
+
+## 致谢
+
+本项目使用了以下开源项目：
+
+- **[xray-knife](https://github.com/LordPenguin666/xray-knife)** - 一个强大的 Xray 核心封装工具，用于节点测试和测速。感谢作者提供如此优秀的工具！
 
 ## 免责声明
 

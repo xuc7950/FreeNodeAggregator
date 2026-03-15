@@ -24,7 +24,7 @@ English | **[简体中文](README_CN.md)**
 | 🔀 **Auto Deduplication** | Smart duplicate removal during merging |
 | 📡 **Multi-protocol Support** | Support vmess, ss, ssr, trojan, vless protocols |
 | 📦 **Standard Output** | Base64 encoded subscription content, ready to import |
-| 🖥️ **Local Server** | Built-in HTTP server for subscription links |
+| 🖥️ **Built-in Server** | Flask-based HTTP server for subscription links |
 | ⏰ **Scheduled Updates** | Automatic daily node refresh at configured time |
 | 🔄 **Loop Testing** | Periodic node testing without re-fetching |
 | 🔧 **Dynamic Config** | Python expressions supported in URLs |
@@ -69,18 +69,18 @@ python3 main.py
 ### Option 2: Docker Deployment
 
 ```bash
-# Load image
-sudo docker load -i FreeNodesAggregator@0.0.2-Docker.tar
+# Build image
+docker build -t free_node_aggregator .
 
 # Run container
-sudo docker run --name free_node_aggregator \
+docker run --name free_node_aggregator \
   -d \
   -p 2352:2352 \
   -v /path/to/config.json:/FreeNodeAggregator/config.json \
-  free_node_aggregator:0.0.2
+  free_node_aggregator
 
 # View logs
-sudo docker logs -f free_node_aggregator
+docker logs -f free_node_aggregator
 ```
 
 <details>
@@ -88,16 +88,16 @@ sudo docker logs -f free_node_aggregator
 
 ```bash
 # Stop container
-sudo docker stop free_node_aggregator
+docker stop free_node_aggregator
 
 # Start container
-sudo docker start free_node_aggregator
+docker start free_node_aggregator
 
 # Restart container
-sudo docker restart free_node_aggregator
+docker restart free_node_aggregator
 
 # Remove container
-sudo docker rm -f free_node_aggregator
+docker rm -f free_node_aggregator
 ```
 
 </details>
@@ -224,11 +224,6 @@ Support Python expressions in URLs using `{expression}` syntax:
             "url": "https://nodefree.me",
             "match1": "article a",
             "match2": ".section p"
-        },
-        {
-            "url": "https://www.freev2raynode.com",
-            "match1": ".col-md-3 a",
-            "match2": ".post-content-content p"
         }
     ]
 }
@@ -259,9 +254,11 @@ After running, import into your client using:
 FreeNodeAggregator/
 ├── main.py               # Main program entry
 ├── utility.py            # Utility functions
+├── server.py             # Flask HTTP server
 ├── config.json           # Configuration file
 ├── requirements.txt      # Python dependencies
 ├── run.bat               # Windows startup script
+├── Dockerfile            # Docker build file
 ├── tools/                # Node testing tools
 │   ├── Windows/          # Windows xray-knife
 │   ├── Linux/            # Linux xray-knife
@@ -269,13 +266,17 @@ FreeNodeAggregator/
 └── README.md             # Documentation
 ```
 
-## Environment Variables
+## Dependencies
 
-| Variable | Description |
-|:---:|:---|
-| `FORCE_COLOR` | Force enable color output |
-| `NO_COLOR` | Disable color output |
-| `TERM=dumb` | Disable color output |
+- [requests](https://pypi.org/project/requests/) - HTTP requests
+- [beautifulsoup4](https://pypi.org/project/beautifulsoup4/) - HTML parsing
+- [flask](https://pypi.org/project/flask/) - Web server framework
+
+## Acknowledgements
+
+This project uses the following open-source projects:
+
+- **[xray-knife](https://github.com/LordPenguin666/xray-knife)** - A powerful Xray core wrapper for node testing and speed measurement. Many thanks to the author for providing such an excellent tool!
 
 ## Contributing
 
@@ -290,11 +291,6 @@ Contributions are welcome!
 - ✅ Only add legitimate free node sources
 - ✅ Ensure URL is accessible and returns valid nodes before submitting
 - ✅ Avoid duplicate sources
-
-## Dependencies
-
-- [requests](https://pypi.org/project/requests/) - HTTP requests
-- [beautifulsoup4](https://pypi.org/project/beautifulsoup4/) - HTML parsing
 
 ## Disclaimer
 
