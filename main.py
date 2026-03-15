@@ -169,9 +169,10 @@ while True:
                     if (download > config["test"]["speed_threshold"]):
                         all_nodes.append(f"{link}{quote(' | 延迟: ')}{delay}{quote('ms | 下载: ')}{download:.2f}{quote('Mb/s | 上传：')}{uoload:.2f}Mb/s")
 
-            with open("free_nodes_filtered.txt", "w", encoding="utf-8") as out_file:
-                for node in all_nodes:
-                    out_file.write(node + "\n")
+            if len(all_nodes) > 0:
+                with open("free_nodes_filtered.txt", "w", encoding="utf-8") as out_file:
+                    for node in all_nodes:
+                        out_file.write(node + "\n")
             
         output_file_name = ["free_nodes_raw.txt", "free_nodes_filtered.txt"][config["test"]["mode"] == "full" or config["test"]["mode"] == "basic"]
         node_count = len(open(output_file_name, 'r', encoding='utf-8').readlines()) / [1,2][config["test"]["mode"] == "full" or config["test"]["mode"] == "basic"]
