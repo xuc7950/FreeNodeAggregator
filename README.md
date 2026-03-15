@@ -276,7 +276,7 @@ FreeNodeAggregator/
 
 This project uses the following open-source projects:
 
-- **[xray-knife](https://github.com/LordPenguin666/xray-knife)** - A powerful Xray core wrapper for node testing and speed measurement. Many thanks to the author for providing such an excellent tool!
+- **[xray-knife](https://github.com/lilendian0x00/xray-knife)** - A powerful Xray core wrapper for node testing and speed measurement. Many thanks to the author for providing such an excellent tool!
 
 ## Contributing
 

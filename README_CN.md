@@ -281,7 +281,7 @@ FreeNodeAggregator/
 
 本项目使用了以下开源项目：
 
-- **[xray-knife](https://github.com/LordPenguin666/xray-knife)** - 一个强大的 Xray 核心封装工具，用于节点测试和测速。感谢作者提供如此优秀的工具！
+- **[xray-knife](https://github.com/lilendian0x00/xray-knife)** - 一个强大的 Xray 核心封装工具，用于节点测试和测速。感谢作者提供如此优秀的工具！
 
 ## 免责声明
 
