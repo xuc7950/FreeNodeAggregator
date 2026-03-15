@@ -5,3 +5,4 @@ free_nodes_filtered.csv
 Dockerfile
 /build/*
 __pycache__/*
+build.*

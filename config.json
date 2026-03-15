@@ -11,13 +11,16 @@
         {"url": "https://raw.githubusercontent.com/snakem982/proxypool/main/source/v2ray-2.txt"},
         {"url": "https://raw.githubusercontent.com/free-nodes/v2rayfree/main/v{datetime.now().strftime('%Y%m%d')}2"},
         {"url": "https://ghfast.top/https://raw.githubusercontent.com/free18/v2ray/refs/heads/main/v.txt"},
-        {"url": "https://nodefree.me", "match1": "article a", "match2": ".section p"},
+        {"url": "http://dayssr.cczzuu.top/node/{datetime.now().strftime('%Y%m%d')}-v2ray.txt"},
+        {"url": "http://stairnode.cczzuu.top/node/{datetime.now().strftime('%Y%m%d')}-v2ray.txt"},
+        {"url": "https://clashfreenode.com/sub/{datetime.now().strftime('%Y%m%d')}-v2ray.txt"},
+        {"url": "https://clashgithub.com/wp-content/uploads/rss/{datetime.now().strftime('%Y%m%d')}.txt"},
+        {"url": "https://static.v2rayshare.net/{datetime.now().strftime('%Y')}/{datetime.now().strftime('%m')}/{datetime.now().strftime('%Y%m%d')}.txt"},
+        {"url": "https://node.nodefree.me/{datetime.now().strftime('%Y')}/{datetime.now().strftime('%m')}/{datetime.now().strftime('%Y%m%d')}.txt"},
+        {"url": "https://oss.oneclash.cc/{datetime.now().strftime('%Y')}/{datetime.now().strftime('%m')}/{datetime.now().strftime('%Y%m%d')}.txt"},
         {"url": "https://www.freev2raynode.com", "match1": ".col-md-3 a", "match2": ".post-content-content p"},
         {"url": "https://www.freeclashnode.com", "match1": ".col-md-3 a", "match2": ".post-content-content p"},
-        {"url": "https://clashfreenode.com", "match1": ".list-body a", "match2": ".subCopy"},
         {"url": "https://freenodes.net", "match1": ".col-md-3 a", "match2": ".post-content-content p"},
-        {"url": "https://oneclash.cc", "match1": ".post_def_left", "match2": ".wznrys p"},
-        {"url": "https://shadowsocksr.org", "match1": ".col-md-3 a", "match2": ".post-content-content p"},
-        {"url": "https://clashgithub.com/", "match1": "#list a", "match2": ".entry-content.cf p"}
+        {"url": "https://shadowsocksr.org", "match1": ".col-md-3 a", "match2": ".post-content-content p"}
     ]
 }
