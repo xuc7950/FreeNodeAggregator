@@ -9,6 +9,7 @@ import argparse
 from utility import *
 from urllib.parse import quote, unquote
 import requests
+from server import start_server
 
 
 def parse_args():
@@ -75,13 +76,14 @@ except: pass
 
 print(f"当前系统: {system_type}")
 print(f"终端模式: {'彩色' if COLOR_SUPPORTED else '黑白'} / {'UTF-8' if UTF8_SUPPORTED else 'ASCII'}")
-# print(f"在线节点（{len(online_query_list)}）：")
+# print(f"线上节点（{len(online_query_list)}）：")
 # pprint(online_query_list)
 
 start_time = time()
 update_time = config["update_time"]
 update_time = [int(x) for x in update_time.split(":")]
-proc = None
+is_first_run = True
+start_server(port=config["port"])
 
 while True:
     can_loop_test = only_test and datetime.now().minute % config["loop_test_interval"] == 0
@@ -89,14 +91,12 @@ while True:
     only_test = not is_update_time
     if not os.path.exists("free_nodes_raw.txt"):
         only_test = False
-    if proc == None or is_update_time or can_loop_test:
-        if proc != None:
-            proc.terminate()
+    if is_first_run or is_update_time or can_loop_test:
+        if not is_first_run:
             round += 1
             print("----------------------------------------------------------------------------------")
             print(f"您的服务已稳定运行{(time()-start_time)/3600:.2f}小时，正在更新节点...")
             print(f"当前更新轮次为：{round}")
-            print("注意：更新过程中可能会短暂无法访问订阅链接，请更新完成后刷新。建议更新时间设置为每天凌晨，测试时不受影响~")
         else:
             round = 1
             print("当前开始时间为：", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
@@ -190,6 +190,6 @@ while True:
 
         if (len(online_query_list) != 0 and len(online_query_list) != len(config["query_list"])):
             print_contribution_box()
-
-        proc = subprocess.Popen([["python3","python"][system_type=="Windows"], "-m", "http.server", str(config["port"])])
-    sleep(1)
+        
+        is_first_run = False
+        sleep(1)
