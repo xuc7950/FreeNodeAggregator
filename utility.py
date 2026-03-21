@@ -328,7 +328,7 @@ def get_nodes_by_two_steps(url, match1, match2, timeout=10):
                 all_node_els = soup.select(match2)
                 for el in all_node_els:
                     link_text = re.sub(r'\s+', '', el.getText())
-                    if link_text.endswith(".txt"):
+                    if link_text.endswith(".txt") or link_text.endswith(".yml") or link_text.endswith(".yaml"):
                         all_nodes.append(link_text)
             else:
                 pprint(f"{space}新url请求失败，状态码: {response.status_code}")
