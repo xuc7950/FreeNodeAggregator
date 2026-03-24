@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Config Manager</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #334155;
+    --border: #475569;
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --danger: #ef4444;
+    --danger-hover: #dc2626;
+    --success: #22c55e;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --radius: 10px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .subtitle { color: var(--text-muted); margin-bottom: 32px; font-size: 14px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title .icon { font-size: 20px; }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .form-group input, .form-group select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 10px 12px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--primary);
+  }
+  .query-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .query-item:hover { border-color: var(--primary); }
+  .query-item .query-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .query-item .query-number {
+    background: var(--primary);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .query-item .url-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .query-item .url-input:focus { border-color: var(--primary); }
+  .query-item .match-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 8px;
+    padding-left: 40px;
+  }
+  .query-item .match-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 7px 10px;
+    font-size: 12px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .query-item .match-input:focus { border-color: var(--primary); }
+  .query-item .match-input::placeholder { color: #64748b; }
+  .btn-remove {
+    background: transparent;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 18px;
+    line-height: 1;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .btn-remove:hover { background: rgba(239,68,68,0.15); }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-success { background: var(--success); color: #fff; }
+  .btn-success:hover { background: #16a34a; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { background: var(--danger-hover); }
+  .btn-outline {
+    background: transparent;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+  }
+  .btn-outline:hover { background: rgba(59,130,246,0.1); }
+  .actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+  .actions-right { margin-left: auto; display: flex; gap: 12px; }
+  .toast {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 999;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { background: var(--success); color: #fff; }
+  .toast.error { background: var(--danger); color: #fff; }
+  .drag-handle {
+    cursor: grab;
+    color: var(--text-muted);
+    font-size: 16px;
+    user-select: none;
+    padding: 2px 4px;
+  }
+  .drag-handle:active { cursor: grabbing; }
+  .query-item.dragging { opacity: 0.4; border-style: dashed; }
+  .query-item.drag-over { border-color: var(--primary); border-width: 2px; }
+  .toggle-match {
+    background: transparent;
+    border: 1px dashed var(--border);
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .toggle-match:hover { border-color: var(--primary); color: var(--primary); }
+  .file-actions { display: flex; gap: 8px; align-items: center; }
+  .file-name {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    color: var(--text-muted);
+    padding: 6px 12px;
+    background: var(--surface2);
+    border-radius: 6px;
+  }
+  /* Password overlay */
+  .pw-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pw-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+  .pw-box h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .pw-box p {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+  .pw-box input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 12px 16px;
+    font-size: 15px;
+    outline: none;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+  .pw-box input:focus { border-color: var(--primary); }
+  .pw-box .pw-error {
+    color: var(--danger);
+    font-size: 13px;
+    min-height: 20px;
+    margin-bottom: 8px;
+  }
+  .pw-box .btn { width: 100%; justify-content: center; margin-top: 4px; }
+  .btn-change-pw {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  .btn-change-pw:hover { border-color: var(--primary); color: var(--primary); }
+  @media (max-width: 640px) {
+    body { padding: 12px; }
+    .query-item .match-row { grid-template-columns: 1fr; padding-left: 0; }
+    .actions { flex-direction: column; }
+    .actions-right { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Password overlay -->
+<div id="pw-overlay" class="pw-overlay" style="display:none"></div>
+
+<div class="container" id="main-content" style="display:none">
+  <h1>Config Manager</h1>
+  <p class="subtitle">可视化管理 config.json 配置文件 &nbsp;·&nbsp; <button class="btn-change-pw" onclick="showChangePw()">🔒 修改密码</button></p>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">⚙️</span> 基础设置</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>更新时间</label>
+        <input type="time" id="update_time">
+      </div>
+      <div class="form-group">
+        <label>端口</label>
+        <input type="number" id="port" min="1" max="65535">
+      </div>
+      <div class="form-group">
+        <label>循环测试间隔 (分钟)</label>
+        <input type="number" id="loop_test_interval" min="1">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🧪</span> 测试配置</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>测试模式</label>
+        <select id="test_mode">
+          <option value="full">Full (完整)</option>
+          <option value="quick">Quick (快速)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>线程数</label>
+        <input type="number" id="test_threads" min="1" max="1000">
+      </div>
+      <div class="form-group">
+        <label>速度阈值 (MB/s)</label>
+        <input type="number" id="test_speed_threshold" min="0" step="0.1">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="icon">🔗</span> 查询列表 (<span id="query-count">0</span>)</div>
+    <div id="query-list"></div>
+    <div style="margin-top: 16px;">
+      <button class="btn btn-outline" onclick="addQuery()">+ 添加新条目</button>
+    </div>
+  </div>
+
+  <div class="actions">
+    <div class="file-actions"><span class="file-name">config.json</span></div>
+    <div class="actions-right">
+      <button class="btn btn-primary" id="btn-save-config" onclick="saveConfigToServer()">💾 保存</button>
+      <button class="btn btn-outline" id="btn-reset-config" onclick="resetConfigToDefault()">↺ 重置</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+/*
+ * ============================================================
+ *  API 层 — 密码管理接口
+ *  当前为模拟实现（localStorage fallback），后续替换为真实后端。
+ *  所有方法返回 Promise，调用方使用 await。
+ *
+ *  后端需要实现的接口约定：
+ *
+ *  1. GET  /api/password/status
+ *     响应: { "initialized": true|false }
+ *     说明: 检查是否已设置过密码（环境变量中是否有值）
+ *
+ *  2. POST /api/password/init
+ *     请求: { "password": "明文密码" }
+ *     响应: { "success": true }
+ *     说明: 首次设置密码，后端负责哈希后写入环境变量
+ *
+ *  3. POST /api/password/verify
+ *     请求: { "password": "明文密码" }
+ *     响应: { "success": true|false }
+ *     说明: 验证密码是否正确
+ *
+ *  4. POST /api/password/change
+ *     请求: { "old_password": "旧密码", "new_password": "新密码" }
+ *     响应: { "success": true } 或 { "success": false, "message": "..." }
+ *     说明: 修改密码，后端验证旧密码后将新密码哈希写入环境变量
+ * ============================================================
+ */
+
+const API_BASE = '';  // 后端地址前缀，部署时修改，例如 'http://localhost:8080'
+const USE_MOCK_API = false; // 设为 true 可启用本地 mock
+const PW_STORAGE_KEY = 'config_mgr_pw_hash';
+
+async function hashPassword(pw) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(pw + '__config_mgr_salt__');
+  const buf = await crypto.subtle.digest('SHA-256', data);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+const PasswordAPI = {
+
+  async getStatus() {
+    if (USE_MOCK_API) {
+      const stored = localStorage.getItem(PW_STORAGE_KEY);
+      return { initialized: !!stored };
+    }
+    const res = await fetch(`${API_BASE}/api/password/status`);
+    return res.json();
+  },
+
+  async init(password) {
+    if (USE_MOCK_API) {
+      const hash = await hashPassword(password);
+      localStorage.setItem(PW_STORAGE_KEY, hash);
+      return { success: true };
+    }
+    const res = await fetch(`${API_BASE}/api/password/init`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    });
+    return res.json();
+  },
+
+  async verify(password) {
+    if (USE_MOCK_API) {
+      const hash = await hashPassword(password);
+      const stored = localStorage.getItem(PW_STORAGE_KEY);
+      return { success: hash === stored };
+    }
+    const res = await fetch(`${API_BASE}/api/password/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    });
+    return res.json();
+  },
+
+  async change(oldPassword, newPassword) {
+    if (USE_MOCK_API) {
+      const oldHash = await hashPassword(oldPassword);
+      const stored = localStorage.getItem(PW_STORAGE_KEY);
+      if (oldHash !== stored) {
+        return { success: false, message: '当前密码错误' };
+      }
+      const newHash = await hashPassword(newPassword);
+      localStorage.setItem(PW_STORAGE_KEY, newHash);
+      return { success: true };
+    }
+    const res = await fetch(`${API_BASE}/api/password/change`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
+    });
+    return res.json();
+  },
+};
+
+const ConfigAPI = {
+  async getConfig() {
+    const res = await fetch(`${API_BASE}/api/config`);
+    return res.json();
+  },
+  async saveConfig(configObj) {
+    const res = await fetch(`${API_BASE}/api/config/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ config: configObj }),
+    });
+    return res.json();
+  },
+  async resetConfig() {
+    const res = await fetch(`${API_BASE}/api/config/reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    return res.json();
+  },
+};
+
+/* ============================================================
+ *  密码 UI 逻辑
+ * ============================================================ */
+
+function getPwOverlay() { return document.getElementById('pw-overlay'); }
+
+function setPwLoading(btnSelector, loading) {
+  const btn = document.querySelector(btnSelector);
+  if (!btn) return;
+  btn.disabled = loading;
+  if (loading) {
+    btn.dataset.origText = btn.textContent;
+    btn.textContent = '请稍候...';
+  } else {
+    btn.textContent = btn.dataset.origText || btn.textContent;
+  }
+}
+
+function renderSetPw() {
+  const overlay = getPwOverlay();
+  overlay.style.display = 'flex';
+  overlay.innerHTML = `
+    <div class="pw-box">
+      <h2>设置密码</h2>
+      <p>首次使用，请设置一个访问密码</p>
+      <input type="password" id="pw-new" placeholder="输入新密码" autofocus>
+      <input type="password" id="pw-confirm" placeholder="确认密码">
+      <div class="pw-error" id="pw-error"></div>
+      <button class="btn btn-primary" id="btn-set-pw" onclick="handleSetPw()">确认设置</button>
+    </div>
+  `;
+  setTimeout(() => {
+    document.getElementById('pw-new')?.focus();
+    document.getElementById('pw-confirm')?.addEventListener('keydown', e => { if (e.key === 'Enter') handleSetPw(); });
+  }, 50);
+}
+
+async function handleSetPw() {
+  const pw = document.getElementById('pw-new').value;
+  const confirmVal = document.getElementById('pw-confirm').value;
+  const errEl = document.getElementById('pw-error');
+  if (!pw) { errEl.textContent = '密码不能为空'; return; }
+  if (pw.length < 4) { errEl.textContent = '密码至少 4 位'; return; }
+  if (pw !== confirmVal) { errEl.textContent = '两次密码不一致'; return; }
+
+  setPwLoading('#btn-set-pw', true);
+  try {
+    const result = await PasswordAPI.init(pw);
+    if (result.success) {
+      unlockApp();
+    } else {
+      errEl.textContent = result.message || '设置失败，请重试';
+    }
+  } catch (e) {
+    errEl.textContent = '网络错误，请检查后端服务';
+  } finally {
+    setPwLoading('#btn-set-pw', false);
+  }
+}
+
+function renderLoginPw() {
+  const overlay = getPwOverlay();
+  overlay.style.display = 'flex';
+  overlay.innerHTML = `
+    <div class="pw-box">
+      <h2>输入密码</h2>
+      <p>请输入访问密码以继续</p>
+      <input type="password" id="pw-input" placeholder="输入密码" autofocus>
+      <div class="pw-error" id="pw-error"></div>
+      <button class="btn btn-primary" id="btn-login" onclick="handleLogin()">解锁</button>
+    </div>
+  `;
+  setTimeout(() => {
+    const inp = document.getElementById('pw-input');
+    if (inp) {
+      inp.focus();
+      inp.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+    }
+  }, 50);
+}
+
+async function handleLogin() {
+  const pw = document.getElementById('pw-input').value;
+  const errEl = document.getElementById('pw-error');
+
+  setPwLoading('#btn-login', true);
+  try {
+    const result = await PasswordAPI.verify(pw);
+    if (result.success) {
+      unlockApp();
+    } else {
+      errEl.textContent = '密码错误，请重试';
+      document.getElementById('pw-input').value = '';
+      document.getElementById('pw-input').focus();
+    }
+  } catch (e) {
+    errEl.textContent = '网络错误，请检查后端服务';
+  } finally {
+    setPwLoading('#btn-login', false);
+  }
+}
+
+function unlockApp() {
+  getPwOverlay().style.display = 'none';
+  document.getElementById('main-content').style.display = '';
+}
+
+function showChangePw() {
+  const overlay = getPwOverlay();
+  overlay.style.display = 'flex';
+  overlay.innerHTML = `
+    <div class="pw-box">
+      <h2>修改密码</h2>
+      <p>请先验证当前密码，然后设置新密码</p>
+      <input type="password" id="pw-old" placeholder="当前密码" autofocus>
+      <input type="password" id="pw-new2" placeholder="新密码">
+      <input type="password" id="pw-confirm2" placeholder="确认新密码">
+      <div class="pw-error" id="pw-error"></div>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button class="btn btn-primary" style="flex:1" id="btn-change-pw" onclick="handleChangePw()">确认修改</button>
+        <button class="btn btn-outline" style="flex:1" onclick="cancelChangePw()">取消</button>
+      </div>
+    </div>
+  `;
+  setTimeout(() => document.getElementById('pw-old')?.focus(), 50);
+}
+
+function cancelChangePw() {
+  getPwOverlay().style.display = 'none';
+}
+
+async function handleChangePw() {
+  const oldPw = document.getElementById('pw-old').value;
+  const newPw = document.getElementById('pw-new2').value;
+  const confirmPw = document.getElementById('pw-confirm2').value;
+  const errEl = document.getElementById('pw-error');
+
+  if (!oldPw) { errEl.textContent = '请输入当前密码'; return; }
+  if (!newPw) { errEl.textContent = '新密码不能为空'; return; }
+  if (newPw.length < 4) { errEl.textContent = '新密码至少 4 位'; return; }
+  if (newPw !== confirmPw) { errEl.textContent = '两次新密码不一致'; return; }
+
+  setPwLoading('#btn-change-pw', true);
+  try {
+    const result = await PasswordAPI.change(oldPw, newPw);
+    if (result.success) {
+      getPwOverlay().style.display = 'none';
+      showToast('密码已修改');
+    } else {
+      errEl.textContent = result.message || '修改失败，请重试';
+    }
+  } catch (e) {
+    errEl.textContent = '网络错误，请检查后端服务';
+  } finally {
+    setPwLoading('#btn-change-pw', false);
+  }
+}
+
+(async function initAuth() {
+  try {
+    const status = await PasswordAPI.getStatus();
+    if (!status.initialized) {
+      renderSetPw();
+    } else {
+      renderLoginPw();
+    }
+  } catch (e) {
+    renderLoginPw();
+  }
+})();
+
+let config = {};
+let dragSrcIndex = null;
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  requestAnimationFrame(() => t.classList.add('show'));
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function loadConfig(data) {
+  config = data;
+  document.getElementById('update_time').value = config.update_time || '03:00';
+  document.getElementById('port').value = config.port || 2352;
+  document.getElementById('loop_test_interval').value = config.loop_test_interval || 5;
+  document.getElementById('test_mode').value = config.test?.mode || 'full';
+  document.getElementById('test_threads').value = config.test?.threads || 100;
+  document.getElementById('test_speed_threshold').value = config.test?.speed_threshold || 0.2;
+  renderQueryList();
+}
+
+function collectConfig() {
+  config.update_time = document.getElementById('update_time').value;
+  config.port = parseInt(document.getElementById('port').value) || 2352;
+  config.loop_test_interval = parseInt(document.getElementById('loop_test_interval').value) || 5;
+  config.test = {
+    mode: document.getElementById('test_mode').value,
+    threads: parseInt(document.getElementById('test_threads').value) || 100,
+    speed_threshold: parseFloat(document.getElementById('test_speed_threshold').value) || 0.2,
+  };
+  collectQueryList();
+  return config;
+}
+
+function collectQueryList() {
+  const items = document.querySelectorAll('.query-item');
+  config.query_list = [];
+  items.forEach(item => {
+    const url = item.querySelector('.url-input').value.trim();
+    if (!url) return;
+    const entry = { url };
+    const m1 = item.querySelector('.match1-input');
+    const m2 = item.querySelector('.match2-input');
+    if (m1 && m1.value.trim()) entry.match1 = m1.value.trim();
+    if (m2 && m2.value.trim()) entry.match2 = m2.value.trim();
+    config.query_list.push(entry);
+  });
+}
+
+function renderQueryList() {
+  const container = document.getElementById('query-list');
+  container.innerHTML = '';
+  (config.query_list || []).forEach((q, i) => {
+    container.appendChild(createQueryItem(q, i));
+  });
+  document.getElementById('query-count').textContent = (config.query_list || []).length;
+}
+
+function createQueryItem(q, index) {
+  const div = document.createElement('div');
+  div.className = 'query-item';
+  div.draggable = true;
+  div.dataset.index = index;
+
+  const hasMatch = !!(q.match1 || q.match2);
+
+  div.innerHTML = `
+    <div class="query-header">
+      <span class="drag-handle" title="拖动排序">⠿</span>
+      <span class="query-number">${index + 1}</span>
+      <input class="url-input" type="text" value="${escapeHtml(q.url || '')}" placeholder="输入 URL...">
+      <button class="toggle-match" onclick="toggleMatch(this)" title="CSS 选择器">${hasMatch ? '▾ 选择器' : '▸ 选择器'}</button>
+      <button class="btn-remove" onclick="removeQuery(this)" title="删除">✕</button>
+    </div>
+    <div class="match-row" style="display:${hasMatch ? 'grid' : 'none'}">
+      <input class="match-input match1-input" type="text" value="${escapeHtml(q.match1 || '')}" placeholder="match1 - CSS 选择器">
+      <input class="match-input match2-input" type="text" value="${escapeHtml(q.match2 || '')}" placeholder="match2 - CSS 选择器">
+    </div>
+  `;
+
+  div.addEventListener('dragstart', handleDragStart);
+  div.addEventListener('dragover', handleDragOver);
+  div.addEventListener('dragenter', handleDragEnter);
+  div.addEventListener('dragleave', handleDragLeave);
+  div.addEventListener('drop', handleDrop);
+  div.addEventListener('dragend', handleDragEnd);
+
+  return div;
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML.replace(/"/g, '&quot;');
+}
+
+function addQuery() {
+  collectQueryList();
+  config.query_list.push({ url: '' });
+  renderQueryList();
+  const items = document.querySelectorAll('.query-item');
+  const last = items[items.length - 1];
+  last.querySelector('.url-input').focus();
+  last.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function removeQuery(btn) {
+  const item = btn.closest('.query-item');
+  item.style.opacity = '0';
+  item.style.transform = 'translateX(40px)';
+  item.style.transition = 'all 0.25s ease';
+  setTimeout(() => {
+    collectQueryList();
+    const idx = parseInt(item.dataset.index);
+    config.query_list.splice(idx, 1);
+    renderQueryList();
+  }, 250);
+}
+
+function toggleMatch(btn) {
+  const row = btn.closest('.query-item').querySelector('.match-row');
+  const visible = row.style.display !== 'none';
+  row.style.display = visible ? 'none' : 'grid';
+  btn.textContent = visible ? '▸ 选择器' : '▾ 选择器';
+}
+
+// Drag & drop
+function handleDragStart(e) {
+  dragSrcIndex = parseInt(this.dataset.index);
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+function handleDragEnter(e) { e.preventDefault(); this.classList.add('drag-over'); }
+function handleDragLeave() { this.classList.remove('drag-over'); }
+function handleDrop(e) {
+  e.preventDefault();
+  this.classList.remove('drag-over');
+  const targetIndex = parseInt(this.dataset.index);
+  if (dragSrcIndex === null || dragSrcIndex === targetIndex) return;
+  collectQueryList();
+  const [moved] = config.query_list.splice(dragSrcIndex, 1);
+  config.query_list.splice(targetIndex, 0, moved);
+  renderQueryList();
+  showToast('已调整顺序');
+}
+function handleDragEnd() {
+  document.querySelectorAll('.query-item').forEach(el => {
+    el.classList.remove('dragging', 'drag-over');
+  });
+  dragSrcIndex = null;
+}
+
+async function saveConfigToServer() {
+  const saveBtn = document.getElementById('btn-save-config');
+  const resetBtn = document.getElementById('btn-reset-config');
+  const saveOrigText = saveBtn ? saveBtn.textContent : '';
+  try {
+    if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '正在保存...'; }
+    if (resetBtn) resetBtn.disabled = true;
+    const data = collectConfig();
+    const result = await ConfigAPI.saveConfig(data);
+    if (result.success) {
+      showToast('已保存到本地 config.json');
+    } else {
+      showToast(result.message || '保存失败', 'error');
+    }
+  } catch (e) {
+    showToast('保存失败，请检查后端服务', 'error');
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = saveOrigText || '💾 保存'; }
+    if (resetBtn) resetBtn.disabled = false;
+  }
+}
+
+async function resetConfigToDefault() {
+  if (!confirm('确认重置为默认远程配置吗？当前未保存改动将丢失。')) return;
+  const saveBtn = document.getElementById('btn-save-config');
+  const resetBtn = document.getElementById('btn-reset-config');
+  const resetOrigText = resetBtn ? resetBtn.textContent : '';
+  try {
+    if (resetBtn) { resetBtn.disabled = true; resetBtn.textContent = '正在拉取...'; }
+    if (saveBtn) saveBtn.disabled = true;
+    showToast('正在拉取默认配置，请稍候...');
+    const result = await ConfigAPI.resetConfig();
+    if (result.success && result.config) {
+      loadConfig(result.config);
+      showToast('已重置并写回本地 config.json');
+    } else {
+      showToast(result.message || '重置失败', 'error');
+    }
+  } catch (e) {
+    showToast('重置失败，请检查后端服务', 'error');
+  } finally {
+    if (resetBtn) { resetBtn.disabled = false; resetBtn.textContent = resetOrigText || '↺ 重置'; }
+    if (saveBtn) saveBtn.disabled = false;
+  }
+}
+
+// Default config
+const defaultConfig = {
+    "update_time": "03:00",
+    "port": 2352,
+    "loop_test_interval": 5,
+    "test": {
+        "mode": "full",
+        "threads": 100,
+        "speed_threshold": 0.2
+    },
+    "query_list": [
+        {"url": "https://proxy.v2gh.com/https://raw.githubusercontent.com/Pawdroid/Free-servers/main/sub"},
+        {"url": "https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/list.txt"},
+        {"url": "https://git.io/emzv2ray"},
+        {"url": "https://raw.githubusercontent.com/mfuu/v2ray/master/v2ray"},
+        {"url": "https://free-node.com", "match1": "[data-elementor-type='loop-item'] a", "match2": "p code"},
+        {"url": "https://raw.githubusercontent.com/snakem982/proxypool/main/source/v2ray-2.txt"},
+        {"url": "https://raw.githubusercontent.com/free-nodes/v2rayfree/main/v{datetime.now().strftime('%Y%m%d')}2"},
+        {"url": "https://ghfast.top/https://raw.githubusercontent.com/free18/v2ray/refs/heads/main/v.txt"},
+        {"url": "http://dayssr.cczzuu.top/node/{datetime.now().strftime('%Y%m%d')}-v2ray.txt"},
+        {"url": "http://stairnode.cczzuu.top/node/{datetime.now().strftime('%Y%m%d')}-v2ray.txt"},
+        {"url": "https://clashfreenode.com/sub/{datetime.now().strftime('%Y%m%d')}-v2ray.txt"},
+        {"url": "https://clashgithub.com/wp-content/uploads/rss/{datetime.now().strftime('%Y%m%d')}.txt"},
+        {"url": "https://static.v2rayshare.net/{datetime.now().strftime('%Y')}/{datetime.now().strftime('%m')}/{datetime.now().strftime('%Y%m%d')}.txt"},
+        {"url": "https://node.nodefree.me/{datetime.now().strftime('%Y')}/{datetime.now().strftime('%m')}/{datetime.now().strftime('%Y%m%d')}.txt"},
+        {"url": "https://oss.oneclash.cc/{datetime.now().strftime('%Y')}/{datetime.now().strftime('%m')}/{datetime.now().strftime('%Y%m%d')}.txt"},
+        {"url": "https://www.freev2raynode.com", "match1": ".col-md-3 a", "match2": ".post-content-content p"},
+        {"url": "https://www.freeclashnode.com", "match1": ".col-md-3 a", "match2": ".post-content-content p"},
+        {"url": "https://freenodes.net", "match1": ".col-md-3 a", "match2": ".post-content-content p"},
+        {"url": "https://shadowsocksr.org", "match1": ".col-md-3 a", "match2": ".post-content-content p"},
+        {"url": "https://raw.githubusercontent.com/mahdibland/ShadowsocksAggregator/master/sub/sub_merge.txt"}
+    ]
+};
+
+(async function initConfigFromServer() {
+  try {
+    const result = await ConfigAPI.getConfig();
+    if (result.success && result.config) {
+      loadConfig(result.config);
+      return;
+    }
+    showToast(result.message || '读取本地配置失败，已使用内置默认配置', 'error');
+  } catch (e) {
+    showToast('读取本地配置失败，已使用内置默认配置', 'error');
+  }
+  loadConfig(defaultConfig);
+})();
+</script>
+</body>
+</html>

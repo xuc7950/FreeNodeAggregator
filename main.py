@@ -57,6 +57,37 @@ def parse_config(config):
         for key, value in query.items():
             config["query_list"][i][key] = re.sub(r"\{(.*?)\}", repl, value)
 
+
+def get_update_time_parts(config):
+    update_time_text = str(config.get("update_time", "03:00"))
+    return [int(x) for x in update_time_text.split(":")]
+
+
+def reload_config_if_changed(config_path, last_mtime, config, update_time, server_port):
+    """检测配置文件改动并热刷新运行时配置。"""
+    try:
+        current_mtime = os.path.getmtime(config_path)
+    except OSError:
+        return config, update_time, last_mtime
+
+    if last_mtime is not None and current_mtime <= last_mtime:
+        return config, update_time, last_mtime
+
+    try:
+        new_config = load_config(config_path)
+        parse_config(new_config)
+        new_update_time = get_update_time_parts(new_config)
+    except Exception as e:
+        print(f"{YELLOW}检测到配置文件变化，但重载失败：{e}{RESET}")
+        return config, update_time, last_mtime
+
+    if int(new_config.get("port", server_port)) != int(server_port):
+        print(f"{YELLOW}检测到端口变更为 {new_config.get('port')}，需重启程序后生效（当前仍使用 {server_port}）。{RESET}")
+
+    print(f"{GREEN}检测到配置已更新，已自动重载: {os.path.abspath(config_path)}{RESET}")
+    return new_config, new_update_time, current_mtime
+
+
 # 解析参数并加载配置
 args = parse_args()
 config = load_config(args.config)
@@ -80,12 +111,16 @@ print(f"终端模式: {'彩色' if COLOR_SUPPORTED else '黑白'} / {'UTF-8' if 
 # pprint(online_query_list)
 
 start_time = time()
-update_time = config["update_time"]
-update_time = [int(x) for x in update_time.split(":")]
+update_time = get_update_time_parts(config)
 is_first_run = True
-start_server(port=config["port"])
+server_port = int(config["port"])
+start_server(port=server_port)
+config_mtime = os.path.getmtime(args.config) if os.path.exists(args.config) else None
 
 while True:
+    config, update_time, config_mtime = reload_config_if_changed(
+        args.config, config_mtime, config, update_time, server_port
+    )
     can_loop_test = only_test and datetime.now().minute % config["loop_test_interval"] == 0
     is_update_time = (datetime.now().hour == update_time[0] and datetime.now().minute == update_time[1])
     only_test = not is_update_time

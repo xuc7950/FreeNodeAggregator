@@ -124,6 +124,62 @@ python main.py --help
 
 ## Configuration
 
+## Password Management via Local Environment Variables
+
+The web config page stores the password hash in local environment variable `CONFIG_MGR_PASSWORD_HASH`.
+
+### Change password from terminal (without web UI)
+
+The password hash rule is:
+
+`sha256(<plain_password> + "__config_mgr_salt__")`
+
+You can generate and update it manually:
+
+**Windows (PowerShell):**
+
+```powershell
+$plain = "YourNewPassword"
+$salt = "__config_mgr_salt__"
+$bytes = [System.Text.Encoding]::UTF8.GetBytes($plain + $salt)
+$hash = [System.BitConverter]::ToString([System.Security.Cryptography.SHA256]::Create().ComputeHash($bytes)).Replace("-", "").ToLower()
+setx CONFIG_MGR_PASSWORD_HASH $hash
+```
+
+> Restart terminal (or restart the Python process) after `setx` to make new sessions read updated env vars.
+
+**Linux/macOS (bash/zsh):**
+
+```bash
+PLAIN='YourNewPassword'
+HASH=$(python3 -c "import hashlib;print(hashlib.sha256((\"$PLAIN\"+\"__config_mgr_salt__\").encode()).hexdigest())")
+echo "export CONFIG_MGR_PASSWORD_HASH='$HASH'" >> ~/.profile
+echo "export CONFIG_MGR_PASSWORD_HASH='$HASH'" >> ~/.bashrc
+echo "export CONFIG_MGR_PASSWORD_HASH='$HASH'" >> ~/.zshrc
+```
+
+Then run:
+
+```bash
+source ~/.profile 2>/dev/null || true
+source ~/.bashrc 2>/dev/null || true
+source ~/.zshrc 2>/dev/null || true
+```
+
+### Verify current password hash exists
+
+**Windows (PowerShell):**
+
+```powershell
+[Environment]::GetEnvironmentVariable("CONFIG_MGR_PASSWORD_HASH", "User")
+```
+
+**Linux/macOS:**
+
+```bash
+echo "$CONFIG_MGR_PASSWORD_HASH"
+```
+
 ### Config File Structure
 
 ```json

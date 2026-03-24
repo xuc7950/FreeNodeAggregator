@@ -124,6 +124,62 @@ python main.py --help
 
 ## 配置说明
 
+## 通过本地环境变量管理密码
+
+网页配置页面会把密码哈希保存到本地环境变量 `CONFIG_MGR_PASSWORD_HASH` 中。
+
+### 通过终端修改密码（不经过网页）
+
+密码哈希规则：
+
+`sha256(明文密码 + "__config_mgr_salt__")`
+
+可手动生成并更新环境变量：
+
+**Windows（PowerShell）：**
+
+```powershell
+$plain = "你的新密码"
+$salt = "__config_mgr_salt__"
+$bytes = [System.Text.Encoding]::UTF8.GetBytes($plain + $salt)
+$hash = [System.BitConverter]::ToString([System.Security.Cryptography.SHA256]::Create().ComputeHash($bytes)).Replace("-", "").ToLower()
+setx CONFIG_MGR_PASSWORD_HASH $hash
+```
+
+> 执行 `setx` 后，建议重开终端（或重启 Python 进程）以确保新会话读取到更新后的环境变量。
+
+**Linux/macOS（bash/zsh）：**
+
+```bash
+PLAIN='你的新密码'
+HASH=$(python3 -c "import hashlib;print(hashlib.sha256((\"$PLAIN\"+\"__config_mgr_salt__\").encode()).hexdigest())")
+echo "export CONFIG_MGR_PASSWORD_HASH='$HASH'" >> ~/.profile
+echo "export CONFIG_MGR_PASSWORD_HASH='$HASH'" >> ~/.bashrc
+echo "export CONFIG_MGR_PASSWORD_HASH='$HASH'" >> ~/.zshrc
+```
+
+然后执行：
+
+```bash
+source ~/.profile 2>/dev/null || true
+source ~/.bashrc 2>/dev/null || true
+source ~/.zshrc 2>/dev/null || true
+```
+
+### 检查当前密码哈希是否存在
+
+**Windows（PowerShell）：**
+
+```powershell
+[Environment]::GetEnvironmentVariable("CONFIG_MGR_PASSWORD_HASH", "User")
+```
+
+**Linux/macOS：**
+
+```bash
+echo "$CONFIG_MGR_PASSWORD_HASH"
+```
+
 ### 配置文件结构
 
 ```json
