@@ -69,19 +69,27 @@ python3 main.py
 ### 方式二：Docker 部署
 
 ```bash
-# 构建镜像
-docker build -t free_node_aggregator .
+# 1) 从 GitHub Release 下载镜像包（示例）
+wget https://github.com/xuc7950/FreeNodeAggregator/releases/download/<tag>/free_node_aggregator.tar
 
-# 启动容器
+# 2) 从 tar 包加载镜像
+docker load -i free_node_aggregator.tar
+
+# 3) （可选）检查镜像是否已加载
+docker images | grep free_node_aggregator
+
+# 4) 启动容器
 docker run --name free_node_aggregator \
   -d \
   -p 2352:2352 \
   -v /path/to/config.json:/FreeNodeAggregator/config.json \
   free_node_aggregator
 
-# 查看日志
+# 5) 查看日志
 docker logs -f free_node_aggregator
 ```
+
+> 如果你是从源码部署，而不是使用 release 镜像包，请先执行 `docker build -t free_node_aggregator .`。
 
 <details>
 <summary>📖 Docker 常用命令</summary>

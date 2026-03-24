@@ -69,19 +69,27 @@ python3 main.py
 ### Option 2: Docker Deployment
 
 ```bash
-# Build image
-docker build -t free_node_aggregator .
+# 1) Download image package from GitHub Release (example)
+wget https://github.com/xuc7950/FreeNodeAggregator/releases/download/<tag>/free_node_aggregator.tar
 
-# Run container
+# 2) Load image from tar
+docker load -i free_node_aggregator.tar
+
+# 3) (Optional) check loaded image
+docker images | grep free_node_aggregator
+
+# 4) Run container
 docker run --name free_node_aggregator \
   -d \
   -p 2352:2352 \
   -v /path/to/config.json:/FreeNodeAggregator/config.json \
   free_node_aggregator
 
-# View logs
+# 5) View logs
 docker logs -f free_node_aggregator
 ```
+
+> If you deploy from source code instead of release image package, use `docker build -t free_node_aggregator .` first.
 
 <details>
 <summary>📖 Docker Commands</summary>
