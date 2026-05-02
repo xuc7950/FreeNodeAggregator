@@ -5,7 +5,8 @@
     "test": {
         "mode": "full",
         "threads": 100,
-        "speed_threshold": 0.2
+        "speed_threshold": 0.2,
+        "prefer_by": "download"
     },
     "query_list": [
         {

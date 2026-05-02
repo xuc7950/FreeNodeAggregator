@@ -223,6 +223,7 @@ echo "$CONFIG_MGR_PASSWORD_HASH"
 | `mode` | string | `none` / `basic` / `full` |
 | `threads` | number | 并发测试线程数（建议 10-100） |
 | `speed_threshold` | number | 最低速度阈值 Mb/s（仅 `full` 模式生效） |
+| `prefer_by` | string | 优选排序依据：`download` / `upload` / `latency`（仅 `full` 模式生效，默认 `download`） |
 
 **测试模式说明：**
 
@@ -231,6 +232,8 @@ echo "$CONFIG_MGR_PASSWORD_HASH"
 | `none` | 跳过测试，直接输出原始节点 |
 | `basic` | 连通性测试，仅检测节点可用性 |
 | `full` | 完整测速，包含延迟、上传/下载速度，并自动过滤低速节点 |
+
+`full` 模式会先完成测速，再按 `prefer_by` 对过滤后的订阅节点排序。默认使用 `download`，即以测速后的下载速度作为优选依据，而不是使用延迟排序。输出订阅会同时写入 Karing 可识别的 `latency` 参数：速度优选时按测速名次写入更小的数值，让 Karing 自动选择测速结果更好的节点；延迟优选时写入真实延迟值。
 
 ### 节点源配置
 
@@ -278,7 +281,8 @@ echo "$CONFIG_MGR_PASSWORD_HASH"
     "test": {
         "mode": "full",
         "threads": 100,
-        "speed_threshold": 0.2
+        "speed_threshold": 0.2,
+        "prefer_by": "download"
     },
     "query_list": [
         {
@@ -304,6 +308,7 @@ echo "$CONFIG_MGR_PASSWORD_HASH"
 |:---|:---|
 | `free_nodes_raw.txt` | 原始合并节点（未测试） |
 | `free_nodes_filtered.txt` | 测试过滤后的可用节点 |
+| `free_nodes_speed_preferred.txt` | 网速优选后的可用节点，固定按下载测速结果写入 Karing `latency` 名次（仅 `full` 模式） |
 | `free_nodes_filtered.csv` | 详细测速结果（仅 `full` 模式） |
 
 ## 订阅地址
@@ -314,6 +319,8 @@ echo "$CONFIG_MGR_PASSWORD_HASH"
 |:---:|:---|
 | 本地 | `http://127.0.0.1:2352/free_nodes_filtered.txt` |
 | 局域网 | `http://<你的IP>:2352/free_nodes_filtered.txt` |
+
+如需在 Karing 中按测速网速优选，可导入 `http://<你的IP>:2352/free_nodes_speed_preferred.txt`。
 
 > 💡 **提示**：推荐配合 [Karing](https://github.com/KaringX/karing) 使用，一款跨平台的代理客户端，界面简洁易用。
 

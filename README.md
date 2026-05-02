@@ -223,6 +223,7 @@ echo "$CONFIG_MGR_PASSWORD_HASH"
 | `mode` | string | `none` / `basic` / `full` |
 | `threads` | number | Concurrent test threads (recommended: 10-100) |
 | `speed_threshold` | number | Minimum speed threshold in Mb/s (`full` mode only) |
+| `prefer_by` | string | Preferred ordering after speed testing: `download` / `upload` / `latency` (`full` mode only, default: `download`) |
 
 **Test Modes:**
 
@@ -231,6 +232,8 @@ echo "$CONFIG_MGR_PASSWORD_HASH"
 | `none` | Skip testing, output raw nodes directly |
 | `basic` | Connectivity test only |
 | `full` | Full speed test with latency, download/upload metrics, and auto-filtering |
+
+In `full` mode, filtered nodes are sorted by `prefer_by`, and the result is also written to the node `latency` parameter for Karing auto selection. With the default `download` setting, the fastest speed-tested node receives `latency=1`, the next one receives `latency=2`, and so on, so Karing can prefer nodes by speed-test results instead of raw latency.
 
 ### Node Source Configuration
 
@@ -278,7 +281,8 @@ Support Python expressions in URLs using `{expression}` syntax:
     "test": {
         "mode": "full",
         "threads": 100,
-        "speed_threshold": 0.2
+        "speed_threshold": 0.2,
+        "prefer_by": "download"
     },
     "query_list": [
         {
@@ -299,6 +303,7 @@ Support Python expressions in URLs using `{expression}` syntax:
 |:---|:---|
 | `free_nodes_raw.txt` | Raw merged nodes (untested) |
 | `free_nodes_filtered.txt` | Filtered nodes after testing |
+| `free_nodes_speed_preferred.txt` | Speed-preferred Karing subscription with `latency` values generated from download speed ranking (`full` mode only) |
 | `free_nodes_filtered.csv` | Detailed speed test results (`full` mode only) |
 
 ## Subscription URL
@@ -309,6 +314,7 @@ After running, import into your client using:
 |:---:|:---|
 | Local | `http://127.0.0.1:2352/free_nodes_filtered.txt` |
 | LAN | `http://<YOUR_IP>:2352/free_nodes_filtered.txt` |
+| Karing speed-preferred | `http://<YOUR_IP>:2352/free_nodes_speed_preferred.txt` |
 
 > 💡 **Tip**: Works best with [Karing](https://github.com/KaringX/karing), a cross-platform proxy client with a clean and intuitive interface.
 
