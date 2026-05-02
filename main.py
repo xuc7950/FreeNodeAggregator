@@ -8,7 +8,7 @@ from time import time, sleep
 import os
 import argparse
 from utility import *
-from urllib.parse import quote, unquote
+from urllib.parse import quote, unquote, urlsplit, urlunsplit, parse_qsl, urlencode
 import requests
 from server import start_server
 
@@ -139,6 +139,64 @@ def sort_speedtest_rows(rows, prefer_by):
     return sorted(rows, key=sort_key)
 
 
+def get_karing_latency_value(prefer_by, delay, preferred_index):
+    """生成 Karing 用于自动优选的 latency 参数，数值越小优先级越高。"""
+    if prefer_by == "latency":
+        return max(1, int(round(delay)))
+    return preferred_index + 1
+
+
+def add_query_param(link, key, value):
+    """在标准 URI 中写入查询参数，保留已有 query 和 fragment。"""
+    parts = urlsplit(link)
+    query_items = [
+        (item_key, item_value)
+        for item_key, item_value in parse_qsl(parts.query, keep_blank_values=True)
+        if item_key != key
+    ]
+    query_items.append((key, str(value)))
+    query = urlencode(query_items)
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, query, parts.fragment))
+
+
+def add_ssr_query_param(link, key, value):
+    """SSR 链接的参数在整体 base64 载荷内，需要解码后再写入。"""
+    encoded = link.replace("ssr://", "", 1)
+    try:
+        padding = "=" * (-len(encoded) % 4)
+        decoded = base64.urlsafe_b64decode((encoded + padding).encode()).decode("utf-8")
+    except Exception:
+        return link
+
+    main_part, separator, query = decoded.partition("/?")
+    query_items = [
+        (item_key, item_value)
+        for item_key, item_value in parse_qsl(query, keep_blank_values=True)
+        if item_key != key
+    ]
+    query_items.append((key, str(value)))
+    updated = main_part + separator + urlencode(query_items)
+    encoded_updated = base64.urlsafe_b64encode(updated.encode()).decode().rstrip("=")
+    return "ssr://" + encoded_updated
+
+
+def add_karing_latency(link, latency):
+    """为 Karing 写入可识别的 latency 参数，用测速排序结果驱动自动优选。"""
+    if link.startswith("ssr://"):
+        return add_ssr_query_param(link, "latency", latency)
+    return add_query_param(link, "latency", latency)
+
+
+def append_link_note(link, note):
+    """将测速说明追加到 URI fragment，避免污染 query 参数。"""
+    if link.startswith("ssr://"):
+        return link
+
+    parts = urlsplit(link)
+    fragment = f"{parts.fragment}{quote(note)}"
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, parts.query, fragment))
+
+
 # 解析参数并加载配置
 args = parse_args()
 config = load_config(args.config)
@@ -246,15 +304,21 @@ while True:
                 if link.startswith("vmess://"):
                     is_valid = row.get("status") == "passed" and download > config["test"]["speed_threshold"]
                     if (is_valid):
+                        karing_latency = get_karing_latency_value(prefer_by, delay, len(all_nodes))
                         proto = link[:link.find("://")+3]
                         content = link.replace(proto, "")
                         content = base64.b64decode(content).decode('utf-8')
                         content = json.loads(content)
                         content["ps"] += f" | 延迟: {delay}ms | 下载: {download:.2f}Mb/s | 上传: {upload:.2f}Mb/s"
-                        all_nodes.append(proto + base64.b64encode(json.dumps(content, ensure_ascii=False).encode('utf-8')).decode('utf-8'))
+                        content["latency"] = str(karing_latency)
+                        updated_link = proto + base64.b64encode(json.dumps(content, ensure_ascii=False).encode('utf-8')).decode('utf-8')
+                        all_nodes.append(updated_link)
                 elif link.startswith("ss://") or link.startswith("ssr://") or link.startswith("trojan://") or link.startswith("vless://"):
                     if (download > config["test"]["speed_threshold"]):
-                        all_nodes.append(f"{link}{quote(' | 延迟: ')}{delay}{quote('ms | 下载: ')}{download:.2f}{quote('Mb/s | 上传：')}{upload:.2f}Mb/s")
+                        karing_latency = get_karing_latency_value(prefer_by, delay, len(all_nodes))
+                        updated_link = add_karing_latency(link, karing_latency)
+                        note = f" | 延迟: {delay}ms | 下载: {download:.2f}Mb/s | 上传：{upload:.2f}Mb/s"
+                        all_nodes.append(append_link_note(updated_link, note))
 
             if len(all_nodes) > 0:
                 with open("free_nodes_filtered.txt", "w", encoding="utf-8") as out_file:

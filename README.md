@@ -233,6 +233,8 @@ echo "$CONFIG_MGR_PASSWORD_HASH"
 | `basic` | Connectivity test only |
 | `full` | Full speed test with latency, download/upload metrics, and auto-filtering |
 
+In `full` mode, filtered nodes are sorted by `prefer_by`, and the result is also written to the node `latency` parameter for Karing auto selection. With the default `download` setting, the fastest speed-tested node receives `latency=1`, the next one receives `latency=2`, and so on, so Karing can prefer nodes by speed-test results instead of raw latency.
+
 ### Node Source Configuration
 
 **Mode 1: Direct Subscription URL**
