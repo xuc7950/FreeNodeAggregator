@@ -303,6 +303,7 @@ Support Python expressions in URLs using `{expression}` syntax:
 |:---|:---|
 | `free_nodes_raw.txt` | Raw merged nodes (untested) |
 | `free_nodes_filtered.txt` | Filtered nodes after testing |
+| `free_nodes_speed_preferred.txt` | Speed-preferred Karing subscription with `latency` values generated from download speed ranking (`full` mode only) |
 | `free_nodes_filtered.csv` | Detailed speed test results (`full` mode only) |
 
 ## Subscription URL
@@ -313,6 +314,7 @@ After running, import into your client using:
 |:---:|:---|
 | Local | `http://127.0.0.1:2352/free_nodes_filtered.txt` |
 | LAN | `http://<YOUR_IP>:2352/free_nodes_filtered.txt` |
+| Karing speed-preferred | `http://<YOUR_IP>:2352/free_nodes_speed_preferred.txt` |
 
 > 💡 **Tip**: Works best with [Karing](https://github.com/KaringX/karing), a cross-platform proxy client with a clean and intuitive interface.
 

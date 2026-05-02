@@ -308,6 +308,7 @@ echo "$CONFIG_MGR_PASSWORD_HASH"
 |:---|:---|
 | `free_nodes_raw.txt` | 原始合并节点（未测试） |
 | `free_nodes_filtered.txt` | 测试过滤后的可用节点 |
+| `free_nodes_speed_preferred.txt` | 网速优选后的可用节点，固定按下载测速结果写入 Karing `latency` 名次（仅 `full` 模式） |
 | `free_nodes_filtered.csv` | 详细测速结果（仅 `full` 模式） |
 
 ## 订阅地址
@@ -318,6 +319,8 @@ echo "$CONFIG_MGR_PASSWORD_HASH"
 |:---:|:---|
 | 本地 | `http://127.0.0.1:2352/free_nodes_filtered.txt` |
 | 局域网 | `http://<你的IP>:2352/free_nodes_filtered.txt` |
+
+如需在 Karing 中按测速网速优选，可导入 `http://<你的IP>:2352/free_nodes_speed_preferred.txt`。
 
 > 💡 **提示**：推荐配合 [Karing](https://github.com/KaringX/karing) 使用，一款跨平台的代理客户端，界面简洁易用。
 
