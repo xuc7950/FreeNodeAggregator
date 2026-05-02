@@ -1,6 +1,7 @@
 
 from pprint import pprint
 import json
+import csv
 import subprocess
 from datetime import datetime
 from time import time, sleep
@@ -86,6 +87,56 @@ def reload_config_if_changed(config_path, last_mtime, config, update_time, serve
 
     print(f"{GREEN}检测到配置已更新，已自动重载: {os.path.abspath(config_path)}{RESET}")
     return new_config, new_update_time, current_mtime
+
+
+def get_test_prefer_by(config):
+    """获取 full 测速后的优选排序策略。"""
+    aliases = {
+        "speed": "download",
+        "speedtest": "download",
+        "download": "download",
+        "upload": "upload",
+        "latency": "latency",
+        "delay": "latency",
+    }
+    prefer_by = str(config.get("test", {}).get("prefer_by", "download")).strip().lower()
+    if prefer_by not in aliases:
+        print(f"{YELLOW}未知优选策略 {prefer_by}，已回退为 download{RESET}")
+        return "download"
+    return aliases[prefer_by]
+
+
+def parse_speedtest_number(value):
+    """将 xray-knife CSV 中的数值字段转为 float，非法值返回 None。"""
+    if value is None:
+        return None
+    text = str(value).strip()
+    if text == "" or text == "null":
+        return None
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+def sort_speedtest_rows(rows, prefer_by):
+    """按优选策略排序测速结果：默认下载速度优先，延迟仅作为兜底排序。"""
+    def sort_key(row):
+        download = parse_speedtest_number(row.get("download"))
+        upload = parse_speedtest_number(row.get("upload"))
+        delay = parse_speedtest_number(row.get("delay"))
+        status_rank = 0 if row.get("status") == "passed" else 1
+        safe_download = download if download is not None else -1
+        safe_upload = upload if upload is not None else -1
+        safe_delay = delay if delay is not None else float("inf")
+
+        if prefer_by == "latency":
+            return (status_rank, safe_delay, -safe_download, -safe_upload)
+        if prefer_by == "upload":
+            return (status_rank, -safe_upload, -safe_download, safe_delay)
+        return (status_rank, -safe_download, -safe_upload, safe_delay)
+
+    return sorted(rows, key=sort_key)
 
 
 # 解析参数并加载配置
@@ -174,35 +225,36 @@ while True:
         if config["test"]["mode"] == "basic":
             os.system(f"{node_test_tool} http -f free_nodes_raw.txt -t {str(config['test']['threads'])} -o free_nodes_filtered.txt")
         elif config["test"]["mode"] == "full":
-            os.system(f"{node_test_tool} http -f free_nodes_raw.txt -t {str(config['test']['threads'])} --speedtest --sort --type csv -o free_nodes_filtered.csv")
+            os.system(f"{node_test_tool} http -f free_nodes_raw.txt -t {str(config['test']['threads'])} --speedtest --sort=false --type csv -o free_nodes_filtered.csv")
             
             # 将csv中的上传、下载、延迟信息与节点名称拼起来，移除掉下载速度小于阈值的节点，输出到txt文件中
             # 样例数据格式：link	status	reason	tls	ip	delay	code	download	upload	location	ttfb	connect_time
-            csv_lines = open("free_nodes_filtered.csv", "r", encoding="utf-8").readlines()
+            with open("free_nodes_filtered.csv", "r", encoding="utf-8", newline="") as csv_file:
+                speedtest_rows = list(csv.DictReader(csv_file))
+            prefer_by = get_test_prefer_by(config)
+            speedtest_rows = sort_speedtest_rows(speedtest_rows, prefer_by)
             all_nodes = []
-            for line in csv_lines[1:]:
-                all_items = line.split(",")
-                if all_items[5]=="null" or all_items[7]=="null" or all_items[8]=="null":
+            for row in speedtest_rows:
+                link = row.get("link", "")
+                download_raw = parse_speedtest_number(row.get("download"))
+                upload_raw = parse_speedtest_number(row.get("upload"))
+                delay = parse_speedtest_number(row.get("delay"))
+                if download_raw is None or upload_raw is None or delay is None:
                     continue
-                link = all_items[0]
-                pattern = r'^-?\d*\.?\d+$'
-                if not bool(re.match(pattern, str(all_items[7]).strip())) or not bool(re.match(pattern, str(all_items[8]).strip())) or not bool(re.match(pattern, str(all_items[5]).strip())):
-                    continue
-                download = float(all_items[7]) / 8.192
-                uoload = float(all_items[8]) / 8.192
-                delay = float(all_items[5])
-                if line.startswith("vmess://"):
-                    is_valid = all_items[1]=="passed" and download > config["test"]["speed_threshold"]
+                download = download_raw / 8.192
+                upload = upload_raw / 8.192
+                if link.startswith("vmess://"):
+                    is_valid = row.get("status") == "passed" and download > config["test"]["speed_threshold"]
                     if (is_valid):
                         proto = link[:link.find("://")+3]
                         content = link.replace(proto, "")
                         content = base64.b64decode(content).decode('utf-8')
                         content = json.loads(content)
-                        content["ps"] += f" | 延迟: {delay}ms | 下载: {download:.2f}Mb/s | 上传: {uoload:.2f}Mb/s"
+                        content["ps"] += f" | 延迟: {delay}ms | 下载: {download:.2f}Mb/s | 上传: {upload:.2f}Mb/s"
                         all_nodes.append(proto + base64.b64encode(json.dumps(content, ensure_ascii=False).encode('utf-8')).decode('utf-8'))
-                elif line.startswith("ss://") or line.startswith("ssr://") or line.startswith("trojan://") or line.startswith("vless://"):
+                elif link.startswith("ss://") or link.startswith("ssr://") or link.startswith("trojan://") or link.startswith("vless://"):
                     if (download > config["test"]["speed_threshold"]):
-                        all_nodes.append(f"{link}{quote(' | 延迟: ')}{delay}{quote('ms | 下载: ')}{download:.2f}{quote('Mb/s | 上传：')}{uoload:.2f}Mb/s")
+                        all_nodes.append(f"{link}{quote(' | 延迟: ')}{delay}{quote('ms | 下载: ')}{download:.2f}{quote('Mb/s | 上传：')}{upload:.2f}Mb/s")
 
             if len(all_nodes) > 0:
                 with open("free_nodes_filtered.txt", "w", encoding="utf-8") as out_file:
@@ -217,6 +269,7 @@ while True:
         output_text += f"滤后节点总数: {len(all_nodes)}/{all_node_count} 个\n"
         if config["test"]["mode"] == "full":
             output_text += f" 过滤阈值：{config['test']['speed_threshold']} Mb/s\n"
+            output_text += f" 优选策略：{get_test_prefer_by(config)}\n"
         output_text += f"更新轮次: {round}\n"
         output_text += f"更新时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
         output_text += f" 测试模式: {config['test']['mode']}\n"

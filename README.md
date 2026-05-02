@@ -223,6 +223,7 @@ echo "$CONFIG_MGR_PASSWORD_HASH"
 | `mode` | string | `none` / `basic` / `full` |
 | `threads` | number | Concurrent test threads (recommended: 10-100) |
 | `speed_threshold` | number | Minimum speed threshold in Mb/s (`full` mode only) |
+| `prefer_by` | string | Preferred ordering after speed testing: `download` / `upload` / `latency` (`full` mode only, default: `download`) |
 
 **Test Modes:**
 
@@ -278,7 +279,8 @@ Support Python expressions in URLs using `{expression}` syntax:
     "test": {
         "mode": "full",
         "threads": 100,
-        "speed_threshold": 0.2
+        "speed_threshold": 0.2,
+        "prefer_by": "download"
     },
     "query_list": [
         {

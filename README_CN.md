@@ -223,6 +223,7 @@ echo "$CONFIG_MGR_PASSWORD_HASH"
 | `mode` | string | `none` / `basic` / `full` |
 | `threads` | number | 并发测试线程数（建议 10-100） |
 | `speed_threshold` | number | 最低速度阈值 Mb/s（仅 `full` 模式生效） |
+| `prefer_by` | string | 优选排序依据：`download` / `upload` / `latency`（仅 `full` 模式生效，默认 `download`） |
 
 **测试模式说明：**
 
@@ -231,6 +232,8 @@ echo "$CONFIG_MGR_PASSWORD_HASH"
 | `none` | 跳过测试，直接输出原始节点 |
 | `basic` | 连通性测试，仅检测节点可用性 |
 | `full` | 完整测速，包含延迟、上传/下载速度，并自动过滤低速节点 |
+
+`full` 模式会先完成测速，再按 `prefer_by` 对过滤后的订阅节点排序。默认使用 `download`，即以测速后的下载速度作为优选依据，而不是使用延迟排序。
 
 ### 节点源配置
 
@@ -278,7 +281,8 @@ echo "$CONFIG_MGR_PASSWORD_HASH"
     "test": {
         "mode": "full",
         "threads": 100,
-        "speed_threshold": 0.2
+        "speed_threshold": 0.2,
+        "prefer_by": "download"
     },
     "query_list": [
         {
